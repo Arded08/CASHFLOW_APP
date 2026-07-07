@@ -867,7 +867,7 @@
       <div class="app-layout">
         <nav class="app-sidebar" aria-label="Menu utama">
           <button class="sidebar-icon-btn" onclick="showOfficeExpenseForm()" title="Pengeluaran Kantor" aria-label="Pengeluaran Kantor">💼</button>
-          <button class="sidebar-icon-btn" onclick="showPersonalExpenseForm()" title="Pengeluaran Pribadi" aria-label="Pengeluaran Pribadi">👤</button>
+          <button class="sidebar-icon-btn" onclick="showPersonalExpenseForm()" title="Monitoring Pribadi" aria-label="Monitoring Pribadi">👤</button>
           <button class="sidebar-icon-btn" onclick="showHistory()" title="Riwayat" aria-label="Riwayat">🧾</button>
           <button class="sidebar-icon-btn" onclick="showReport()" title="Report" aria-label="Report">📊</button>
           <button class="sidebar-icon-btn" onclick="showBudgetSetting()" title="Setting Budget" aria-label="Setting Budget">⚙️</button>
@@ -974,7 +974,7 @@
               <div class="dashboard-item"><span>Budget Kantor:</span> <span id="budget_kantor">0</span></div>
               <div class="dashboard-item"><span>Pengeluaran Kantor:</span> <span id="total_kantor">0</span></div>
               <div class="dashboard-item"><span>Sisa Budget:</span> <span id="sisa_budget">0</span></div>
-              <div class="dashboard-item"><span>Pengeluaran Pribadi:</span> <span id="total_pribadi">0</span></div>
+              <div class="dashboard-item"><span>Monitoring Pribadi:</span> <span id="total_pribadi">0</span></div>
               <div class="dashboard-item" style="background:#eef6ff; padding: 18px 14px; border-radius: 16px;"><span>Total Semua:</span> <span id="total_semua">0</span></div>
             </div>
           </div>
@@ -1005,7 +1005,7 @@
           </div>
 
           <div id="personalExpenseForm" class="card" style="display:none;">
-            <h3>Form Pengeluaran Pribadi</h3>
+            <h3>Form Monitoring Pribadi</h3>
             <input type="date" id="tanggal">
             <input type="text" id="deskripsi" placeholder="Deskripsi">
             <input type="number" id="nominal" placeholder="Nominal">
@@ -1325,7 +1325,7 @@ function submitOfficeExpense() {
           nominal: document.getElementById('nominal').value
         };
         isSaving = true;
-        showLoadingModal('Menyimpan pengeluaran pribadi...');
+        showLoadingModal('Menyimpan monitoring pribadi...');
         google.script.run
           .withFailureHandler(function(err) { isSaving = false; showErrorModal('Gagal menyimpan: ' + err); })
           .withSuccessHandler(function(res) {
@@ -1333,7 +1333,7 @@ function submitOfficeExpense() {
             hideAppModal();
 
             if (!res || !res.ok) {
-              showErrorModal(res && res.message ? res.message : 'Gagal menyimpan pengeluaran pribadi');
+              showErrorModal(res && res.message ? res.message : 'Gagal menyimpan monitoring pribadi');
               return;
             }
 
@@ -1345,7 +1345,7 @@ function submitOfficeExpense() {
               loadHistory();
             }
 
-            showSuccessModal('Pengeluaran pribadi berhasil disimpan');
+            showSuccessModal('Monitoring pribadi berhasil disimpan');
           })
           .savePersonalExpense(payload);
       }
@@ -1412,7 +1412,7 @@ function submitOfficeExpense() {
               <div>Budget Kantor: ${formatRupiah(summary.budgetKantor)}</div>
               <div>Pengeluaran Kantor: ${formatRupiah(summary.totalKantor)}</div>
               <div>Sisa Budget: ${formatRupiah(summary.sisaBudgetKantor)}</div>
-              <div>Pengeluaran Pribadi: ${formatRupiah(summary.totalPribadi)}</div>
+              <div>Monitoring Pribadi: ${formatRupiah(summary.totalPribadi)}</div>
               <div>Total Semua: ${formatRupiah(summary.totalSemua)}</div>
               <div>Makan: ${formatRupiah(summary.totalMakan)}</div>
               <div>Ngopi: ${formatRupiah(summary.totalNgopi)}</div>
@@ -1452,7 +1452,7 @@ function submitOfficeExpense() {
                              `Budget Kantor: ${formatRupiah(summary.budgetKantor)}\n` +
                              `Pengeluaran Kantor: ${formatRupiah(summary.totalKantor)}\n` +
                              `Sisa Budget: ${formatRupiah(summary.sisaBudgetKantor)}\n` +
-                             `Pengeluaran Pribadi: ${formatRupiah(summary.totalPribadi)}\n` +
+                             `Monitoring Pribadi: ${formatRupiah(summary.totalPribadi)}\n` +
                              `Total Semua: ${formatRupiah(summary.totalSemua)}\n\n` +
                              `Catatan: Transaksi pribadi hanya ditampilkan sebagai total monitoring.\n\n` +
                              `MAKAN VS NGOPI\n` +
