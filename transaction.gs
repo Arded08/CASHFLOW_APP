@@ -17,6 +17,79 @@ function getTransactionSheet_() {
   return sheet;
 }
 
+
+function updateTransactionBasic(trxId, payload) {
+  try {
+    if (!trxId) {
+      return { ok: false, message: 'TRX_ID wajib diisi' };
+    }
+
+    payload = payload || {};
+
+    var deskripsi = String(payload.deskripsi || '').trim();
+    var keterangan = String(payload.keterangan || '').trim();
+    var nominal = Number(payload.nominal || 0);
+
+    if (!deskripsi) {
+      return { ok: false, message: 'Deskripsi wajib diisi' };
+    }
+
+    if (!isFinite(nominal) || isNaN(nominal) || nominal < 0) {
+      return { ok: false, message: 'Nominal tidak valid' };
+    }
+
+    var sheet = getTransactionSheet_();
+    var values = sheet.getDataRange().getValues();
+
+    if (values.length < 2) {
+      return { ok: false, message: 'Data transaksi kosong' };
+    }
+
+    var headers = values[0];
+    var map = {};
+    headers.forEach(function(h, i) {
+      map[String(h).trim()] = i;
+    });
+
+    var required = ['TRX_ID', 'DESKRIPSI', 'KETERANGAN', 'NOMINAL', 'UPDATED_AT', 'STATUS'];
+    for (var r = 0; r < required.length; r++) {
+      if (map[required[r]] === undefined) {
+        return { ok: false, message: 'Header tidak lengkap: ' + required[r] };
+      }
+    }
+
+    for (var i = 1; i < values.length; i++) {
+      if (String(values[i][map.TRX_ID]) === String(trxId)) {
+        var status = String(values[i][map.STATUS] || '').toUpperCase();
+        if (status === 'DELETED') {
+          return { ok: false, message: 'Transaksi sudah dihapus dan tidak bisa diedit' };
+        }
+
+        var rowNumber = i + 1;
+        sheet.getRange(rowNumber, map.DESKRIPSI + 1).setValue(deskripsi);
+        sheet.getRange(rowNumber, map.KETERANGAN + 1).setValue(keterangan);
+        sheet.getRange(rowNumber, map.NOMINAL + 1).setValue(nominal);
+        sheet.getRange(rowNumber, map.UPDATED_AT + 1).setValue(new Date());
+
+        return {
+          ok: true,
+          message: 'Transaksi berhasil diperbarui',
+          data: {
+            trxId: trxId,
+            deskripsi: deskripsi,
+            keterangan: keterangan,
+            nominal: nominal
+          }
+        };
+      }
+    }
+
+    return { ok: false, message: 'Transaksi tidak ditemukan' };
+  } catch (err) {
+    return { ok: false, message: 'updateTransactionBasic error: ' + (err.message || String(err)) };
+  }
+}
+
 function savePersonalExpense(payload) {
   var sheet = getTransactionSheet_();
   

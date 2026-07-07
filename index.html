@@ -7,6 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <style>
+      .history-action-btn.danger {
+        background: rgba(239,68,68,0.16) !important;
+        color: #fecaca !important;
+        border: 1px solid rgba(239,68,68,0.28) !important;
+      }
+
       .history-action-btn {
         min-height: 34px !important;
         height: 34px !important;
@@ -18,13 +24,16 @@
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
+        background: rgba(59,130,246,0.14) !important;
+        color: #bfdbfe !important;
+        border: 1px solid rgba(59,130,246,0.24) !important;
       }
 
-      .history-action-btn.danger {
-        background: rgba(239,68,68,0.16) !important;
-        color: #fecaca !important;
-        border: 1px solid rgba(239,68,68,0.28) !important;
-      }
+      .app-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.2s ease; }
+      .app-modal.show { display: flex; opacity: 1; }
+      .app-modal-card { background: white; width: 100%; max-width: 400px; padding: 24px; border-radius: 22px; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: scale(0.9); transition: transform 0.2s ease; }
+      .app-modal.show .app-modal-card { transform: scale(1); }
+      .app-modal-icon { font-size: 48px; margin-bottom: 16px; text-align: center; }
 
       * { box-sizing: border-box; }
       html, body {
@@ -1081,6 +1090,7 @@
       };
       var isSaving = false;
       var lastReportText = '';
+      var lastHistoryData = [];
       
       const DEALER_MASTER = {
         '5070001': 'Budiana 156',
@@ -1549,6 +1559,7 @@ function submitOfficeExpense() {
       }
 
       var data = Array.isArray(parsed.data) ? parsed.data : [];
+      lastHistoryData = data;
 
       if (data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6">Belum ada transaksi untuk filter ini</td></tr>';
@@ -1566,11 +1577,111 @@ function submitOfficeExpense() {
 
         var actionCell = row.insertCell(5);
         actionCell.innerHTML =
+          '<button class="history-action-btn" onclick="openEditTransactionModal(\'' + trx.id + '\')">Edit</button>' +
           '<button class="history-action-btn danger" onclick="confirmDeleteTransaction(\'' + trx.id + '\')">Hapus</button>';
       });
     })
     .getTransactionsJson(filter);
 }
+
+function openEditTransactionModal(trxId) {
+  var trx = null;
+
+  for (var i = 0; i < lastHistoryData.length; i++) {
+    if (String(lastHistoryData[i].id) === String(trxId)) {
+      trx = lastHistoryData[i];
+      break;
+    }
+  }
+
+  if (!trx) {
+    showErrorModal('Data transaksi tidak ditemukan di riwayat');
+    return;
+  }
+
+  document.getElementById('edit_trx_id').value = trx.id || '';
+  document.getElementById('edit_deskripsi').value = trx.deskripsi || '';
+  document.getElementById('edit_keterangan').value = trx.keterangan || '';
+  document.getElementById('edit_nominal').value = Number(trx.nominal || 0);
+
+  var modal = document.getElementById('editTransactionModal');
+  if (modal) modal.classList.add('show');
+}
+
+function closeEditTransactionModal() {
+  var modal = document.getElementById('editTransactionModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function submitEditTransaction() {
+  var trxId = document.getElementById('edit_trx_id').value;
+  var deskripsi = document.getElementById('edit_deskripsi').value;
+  var keterangan = document.getElementById('edit_keterangan').value;
+  var nominal = document.getElementById('edit_nominal').value;
+
+  if (!trxId) {
+    showErrorModal('TRX_ID tidak valid');
+    return;
+  }
+
+  if (!deskripsi || !deskripsi.trim()) {
+    showErrorModal('Deskripsi wajib diisi');
+    return;
+  }
+
+  if (Number(nominal) < 0 || isNaN(Number(nominal))) {
+    showErrorModal('Nominal tidak valid');
+    return;
+  }
+
+  showLoadingModal('Menyimpan perubahan transaksi...');
+
+  google.script.run
+    .withFailureHandler(function(err) {
+      hideAppModal();
+      showErrorModal('Gagal update transaksi: ' + err);
+    })
+    .withSuccessHandler(function(res) {
+      hideAppModal();
+
+      if (res && res.ok) {
+        closeEditTransactionModal();
+        showSuccessModal('Transaksi berhasil diperbarui');
+        loadHistory();
+        loadDashboard();
+      } else {
+        showErrorModal('Gagal update transaksi: ' + ((res && res.message) || 'Error'));
+      }
+    })
+    .updateTransactionBasic(trxId, {
+      deskripsi: deskripsi,
+      keterangan: keterangan,
+      nominal: nominal
+    });
+}
     </script>
+
+<div id="editTransactionModal" class="app-modal">
+  <div class="app-modal-card">
+    <div class="app-modal-icon">✏️</div>
+    <div id="editTransactionTitle" style="font-size:20px;font-weight:800;margin-bottom:8px;">Edit Transaksi</div>
+
+    <input type="hidden" id="edit_trx_id">
+
+    <label>Deskripsi</label>
+    <input type="text" id="edit_deskripsi" placeholder="Deskripsi">
+
+    <label>Keterangan</label>
+    <input type="text" id="edit_keterangan" placeholder="Keterangan">
+
+    <label>Nominal</label>
+    <input type="number" id="edit_nominal" placeholder="Nominal">
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-secondary" type="button" onclick="closeEditTransactionModal()">Batal</button>
+      <button class="btn" type="button" onclick="submitEditTransaction()">Simpan</button>
+    </div>
+  </div>
+</div>
   </body>
 </html>
