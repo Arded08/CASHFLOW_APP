@@ -1090,6 +1090,7 @@
       };
       var isSaving = false;
       var lastReportText = '';
+      var lastDealerReportText = '';
       var lastHistoryData = [];
       
       const DEALER_MASTER = {
@@ -1377,6 +1378,19 @@ function submitOfficeExpense() {
     <div id="reportPage" class="card" style="display:none;">
       <h3>Report Bulanan</h3>
       <input type="month" id="rep_filter_bulan" onchange="loadReport()">
+      
+      <div class="dealer-report-filter" style="margin:12px 0; display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="dealer_report_code">
+          <option value="">Pilih Dealer</option>
+          <option value="5070001">Budiana 156</option>
+          <option value="5070002">Surya Utama Motor</option>
+          <option value="5070029">Trio Motor</option>
+        </select>
+        <button class="btn" type="button" onclick="loadDealerReport()">Load Dealer</button>
+        <button class="btn btn-secondary" type="button" onclick="copyDealerReport()">Copy Dealer Report</button>
+      </div>
+      <div id="dealerReportContent"></div>
+      
       <div id="reportContent"></div>
       <button class="btn btn-secondary" onclick="hideReport()">Tutup</button>
     </div>
@@ -1490,6 +1504,98 @@ function submitOfficeExpense() {
           return;
         }
         navigator.clipboard.writeText(lastReportText).then(() => showSuccessModal('Report berhasil disalin!'));
+      }
+
+      function loadDealerReport() {
+        var month = document.getElementById('rep_filter_bulan').value || new Date().toISOString().slice(0, 7);
+        var dealerCode = document.getElementById('dealer_report_code').value;
+        var container = document.getElementById('dealerReportContent');
+
+        if (!dealerCode) {
+          showErrorModal('Pilih dealer terlebih dahulu');
+          return;
+        }
+
+        if (!container) {
+          showErrorModal('Container report dealer tidak ditemukan');
+          return;
+        }
+
+        container.innerHTML = '<div class="report-section">Memuat report dealer...</div>';
+
+        google.script.run
+          .withFailureHandler(function(err) {
+            container.innerHTML = '<div class="report-section">Gagal memuat report dealer</div>';
+            showErrorModal('Gagal memuat report dealer: ' + err);
+          })
+          .withSuccessHandler(function(res) {
+            if (!res || !res.ok) {
+              var msg = (res && res.message) || 'Response report dealer tidak valid';
+              container.innerHTML = '<div class="report-section">Gagal memuat report dealer</div>';
+              showErrorModal('Gagal memuat report dealer: ' + msg);
+              return;
+            }
+
+            var data = res.data || {};
+            var transaksi = Array.isArray(data.transaksi) ? data.transaksi : [];
+
+            var html = '<div class="card" style="background:#fafafa; border:1px solid #eee; margin:15px 0; padding:15px;">';
+            html += '<h4>Report Dealer: ' + (data.namaDealer || data.dealerCode || '-') + '</h4>';
+            html += '<div class="report-item">Periode: <strong>' + (data.bulan || month) + '</strong></div>';
+            html += '<div class="report-item">Total Dealer: <strong>' + formatRupiah(data.totalDealer || 0) + '</strong></div>';
+            html += '<div class="report-item">Jumlah Transaksi: <strong>' + (data.jumlahTransaksi || 0) + '</strong></div>';
+            html += '<h5>Detail Transaksi</h5>';
+
+            if (transaksi.length === 0) {
+              html += '<div class="report-item">Tidak ada transaksi untuk dealer ini.</div>';
+            } else {
+              transaksi.forEach(function(item, index) {
+                html += '<div class="report-item">'
+                  + '<strong>' + (index + 1) + '. ' + (item.tanggal || '-') + '</strong>'
+                  + ' | ' + (item.deskripsi || '-')
+                  + ' | ' + formatRupiah(item.nominal || 0)
+                  + '</div>';
+              });
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            lastDealerReportText = '📌 REPORT DEALER\n'
+              + 'Periode: ' + (data.bulan || month) + '\n'
+              + 'Dealer: ' + (data.namaDealer || data.dealerCode || '-') + '\n'
+              + 'Total: ' + formatRupiah(data.totalDealer || 0) + '\n'
+              + 'Jumlah Transaksi: ' + (data.jumlahTransaksi || 0) + '\n\n'
+              + 'DETAIL TRANSAKSI\n';
+
+            if (transaksi.length === 0) {
+              lastDealerReportText += 'Tidak ada transaksi untuk dealer ini.\n';
+            } else {
+              transaksi.forEach(function(item, index) {
+                lastDealerReportText += (index + 1) + '. '
+                  + (item.tanggal || '-')
+                  + ' | ' + (item.deskripsi || '-')
+                  + ' | ' + formatRupiah(item.nominal || 0)
+                  + '\n';
+              });
+            }
+          })
+          .getDealerReportData(month, dealerCode);
+      }
+
+      function copyDealerReport() {
+        if (!lastDealerReportText) {
+          showErrorModal('Report dealer belum dimuat');
+          return;
+        }
+
+        navigator.clipboard.writeText(lastDealerReportText)
+          .then(function() {
+            showSuccessModal('Report dealer berhasil disalin!');
+          })
+          .catch(function(err) {
+            showErrorModal('Gagal copy report dealer: ' + err);
+          });
       }
     </script>
 

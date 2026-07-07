@@ -77,6 +77,9 @@ function getReportData(month) {
     var jumlahTransaksiPribadi = 0;
 
     data.forEach(function(row) {
+      var status = String(getCell(row, 'STATUS') || '').toUpperCase();
+      if (status === 'DELETED') return;
+
       var rowBulan = getCell(row, 'BULAN');
       if (rowBulan instanceof Date) {
         rowBulan = Utilities.formatDate(rowBulan, Session.getScriptTimeZone(), 'yyyy-MM');
@@ -112,7 +115,7 @@ function getReportData(month) {
             keterangan: getCell(row, 'KETERANGAN'),
             nominal: nominal,
             link_kwitansi: getCell(row, 'FOTO_KWITANSI_URL'),
-            status: getCell(row, 'STATUS')
+            status: status
           });
           totalKantor += nominal;
           jumlahTransaksiKantor++;
@@ -121,7 +124,7 @@ function getReportData(month) {
             tanggal: tanggalStr,
             deskripsi: getCell(row, 'DESKRIPSI'),
             nominal: nominal,
-            status: getCell(row, 'STATUS')
+            status: status
           });
           totalPribadi += nominal;
           jumlahTransaksiPribadi++;
@@ -159,6 +162,61 @@ function getReportData(month) {
     });
   } catch (err) {
     return errorResponse(err.message || String(err));
+  }
+}
+
+function getDealerReportData(month, dealerCode) {
+  try {
+    if (!month) {
+      return errorResponse('Bulan wajib dipilih');
+    }
+
+    if (!dealerCode) {
+      return errorResponse('Dealer wajib dipilih');
+    }
+
+    dealerCode = String(dealerCode).trim();
+
+    var reportRes = getReportData(month);
+    if (!reportRes || !reportRes.ok || !reportRes.data) {
+      return errorResponse((reportRes && reportRes.message) || 'Gagal mengambil report bulanan');
+    }
+
+    var reportKantor = Array.isArray(reportRes.data.reportKantor) ? reportRes.data.reportKantor : [];
+
+    var filtered = reportKantor.filter(function(item) {
+      return String(item.dealer_code || '').trim() === dealerCode;
+    });
+
+    var totalDealer = 0;
+    filtered.forEach(function(item) {
+      totalDealer += Number(item.nominal || 0);
+    });
+
+    var namaDealer = '';
+    if (filtered.length > 0) {
+      namaDealer = filtered[0].nama_dealer || '';
+    }
+
+    if (!namaDealer) {
+      var dealerMap = {
+        '5070001': 'Budiana 156',
+        '5070002': 'Surya Utama Motor',
+        '5070029': 'Trio Motor'
+      };
+      namaDealer = dealerMap[dealerCode] || dealerCode;
+    }
+
+    return successResponse({
+      bulan: month,
+      dealerCode: dealerCode,
+      namaDealer: namaDealer,
+      totalDealer: totalDealer,
+      jumlahTransaksi: filtered.length,
+      transaksi: filtered
+    });
+  } catch (err) {
+    return errorResponse('getDealerReportData error: ' + (err.message || String(err)));
   }
 }
 
