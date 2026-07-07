@@ -758,6 +758,37 @@ Aplikasi MVP dianggap selesai jika sudah bisa:
 
 ---
 
+## LOCKED UI RULE - DESKTOP
+
+Desktop/laptop UI sudah disetujui sebagai versi stabil premium.
+
+Commit lock:
+LOCK - stable premium desktop UI
+
+Aturan wajib:
+1. Jangan mengubah tampilan desktop/laptop tanpa instruksi eksplisit.
+2. Jangan mengubah blok CSS:
+   @media (min-width: 900px)
+   kecuali user secara jelas meminta perubahan desktop.
+3. Jangan mengubah:
+   - desktop app-shell
+   - desktop app-layout
+   - desktop app-sidebar
+   - desktop dashboard card
+   - desktop font Space Grotesk
+   - desktop dashboard value JetBrains Mono
+   - desktop warna/background/card/sidebar
+4. Jika user meminta perubahan HP/mobile, patch hanya boleh dilakukan di:
+   @media (max-width: 899px), (hover: none) and (pointer: coarse)
+5. Jangan rewrite seluruh index.html.
+6. Jangan menghapus function JavaScript.
+7. Jangan membuat placeholder seperti:
+   "Insert original JS logic here"
+8. Setiap patch UI berikutnya harus kecil, spesifik, dan tidak merusak desktop locked UI.
+9. Sebelum patch UI, audit dulu area yang akan berubah.
+
+---
+
 ## 23. Catatan Akhir Untuk Roo
 
 Bangun aplikasi ini secara pragmatis.
