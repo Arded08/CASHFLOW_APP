@@ -346,6 +346,90 @@
       }
 
         @media (max-width: 899px), (hover: none) and (pointer: coarse) {
+    .chart-placeholder {
+      height: auto !important;
+      min-height: 0 !important;
+      display: block !important;
+    }
+
+    .dealer-bar-row {
+      margin-top: 18px !important;
+      padding: 16px !important;
+      border-radius: 20px !important;
+      background: rgba(255,255,255,0.045) !important;
+      border: 1px solid rgba(255,255,255,0.075) !important;
+    }
+
+    .dealer-bar-info {
+      display: block !important;
+      margin-bottom: 12px !important;
+    }
+
+    .dealer-bar-name {
+      display: block !important;
+      color: #f8fafc !important;
+      font-size: 18px !important;
+      line-height: 1.25 !important;
+      font-weight: 900 !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
+      max-width: none !important;
+    }
+
+    .dealer-bar-value {
+      display: block !important;
+      margin-top: 6px !important;
+      color: #67e8f9 !important;
+      font-size: 22px !important;
+      line-height: 1.15 !important;
+      font-weight: 900 !important;
+    }
+
+    .dealer-bar-share {
+      display: block !important;
+      margin-top: 5px !important;
+      color: rgba(255,255,255,0.58) !important;
+      font-size: 13px !important;
+      line-height: 1.25 !important;
+    }
+
+    .dealer-bar-track {
+      height: 13px !important;
+      background: rgba(255,255,255,0.08) !important;
+      border-radius: 999px !important;
+      overflow: hidden !important;
+    }
+
+    .dealer-bar-fill {
+      height: 100% !important;
+      border-radius: 999px !important;
+      background: linear-gradient(90deg, #22d3ee, #8b5cf6) !important;
+      box-shadow: 0 0 18px rgba(34,211,238,0.42) !important;
+    }
+
+    .ranking-item {
+      align-items: flex-start !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+    }
+
+    .ranking-left {
+      width: 100% !important;
+    }
+
+    .ranking-right {
+      width: 100% !important;
+      text-align: left !important;
+    }
+
+    .ranking-left strong {
+      max-width: none !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
+    }
+
     .app-shell { padding: 12px; }
     
     .dashboard-mobile-shell {
@@ -432,6 +516,128 @@
     .food-ngopi-fill {
       background: linear-gradient(90deg, #22d3ee, #6366f1);
       box-shadow: 0 0 18px rgba(34,211,238,0.45);
+    }
+
+    .ranking-empty,
+    .chart-empty {
+      color: rgba(255,255,255,0.58);
+      font-size: 15px;
+      padding: 14px 0;
+    }
+
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .ranking-item:last-child {
+      border-bottom: none;
+    }
+
+    .ranking-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .ranking-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(34,211,238,0.14);
+      color: #67e8f9;
+      font-size: 14px;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .ranking-left strong {
+      display: block;
+      color: #f8fafc;
+      font-size: 16px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 190px;
+    }
+
+    .ranking-left small,
+    .ranking-right small {
+      display: block;
+      color: rgba(255,255,255,0.52);
+      font-size: 12px;
+    }
+
+    .ranking-right {
+      text-align: right;
+      flex: 0 0 auto;
+    }
+
+    .ranking-right strong {
+      display: block;
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .dealer-bar-row {
+      margin-top: 15px;
+    }
+
+    .dealer-bar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .dealer-bar-top span {
+      color: rgba(255,255,255,0.82);
+      font-size: 15px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 210px;
+    }
+
+    .dealer-bar-top strong {
+      color: #f8fafc;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .dealer-bar-track {
+      height: 11px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .dealer-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22d3ee, #8b5cf6);
+      box-shadow: 0 0 18px rgba(34,211,238,0.42);
+      transition: width 0.35s ease;
+    }
+
+    .dealer-bar-row small {
+      display: block;
+      margin-top: 5px;
+      color: rgba(255,255,255,0.48);
+      font-size: 12px;
+      text-align: right;
     }
 
     .dashboard-hero-card {
@@ -813,8 +1019,66 @@
             document.getElementById('total_semua').innerText = formatRupiah(d.totalSemuaPengeluaran || d.totalSemua);
             
             updateFoodCoffeeWidget(d.totalMakan || 0, d.totalNgopi || 0);
+            updateDealerDashboard(d.topDealerList || []);
           } else showErrorModal('Gagal memuat dashboard: ' + (res.message || 'Error'));
         }).getDashboardData(month);
+      }
+
+      function updateDealerDashboard(topDealerList) {
+        topDealerList = Array.isArray(topDealerList) ? topDealerList : [];
+
+        var rankingList = document.getElementById('ranking_list');
+        var chart = document.querySelector('.chart-placeholder');
+
+        if (rankingList) {
+          if (!topDealerList.length) {
+            rankingList.innerHTML = '<div class="ranking-empty">Belum ada data dealer bulan ini</div>';
+          } else {
+            rankingList.innerHTML = topDealerList.slice(0, 3).map(function(item, index) {
+              var rank = index + 1;
+              var name = item.nama_dealer || item.dealer_code || 'Tanpa Dealer';
+              var total = formatRupiah(item.total || 0);
+              var percent = Number(item.percent || 0);
+              return ''
+                + '<div class="ranking-item">'
+                +   '<div class="ranking-left">'
+                +     '<span class="ranking-badge">#' + rank + '</span>'
+                +     '<div>'
+                +       '<strong>' + name + '</strong>'
+                +       '<small>' + (item.jumlah_trx || 0) + ' transaksi</small>'
+                +     '</div>'
+                +   '</div>'
+                +   '<div class="ranking-right">'
+                +     '<strong>' + total + '</strong>'
+                +     '<small>' + percent + '%</small>'
+                +   '</div>'
+                + '</div>';
+            }).join('');
+          }
+        }
+
+        if (chart) {
+          if (!topDealerList.length) {
+            chart.innerHTML = '<div class="chart-empty">Belum ada data dealer</div>';
+          } else {
+            chart.innerHTML = topDealerList.slice(0, 5).map(function(item) {
+              var name = item.nama_dealer || item.dealer_code || 'Tanpa Dealer';
+              var percent = Math.max(3, Number(item.percent || 0));
+              var total = formatRupiah(item.total || 0);
+              return ''
+                + '<div class="dealer-bar-row">'
+                +   '<div class="dealer-bar-info">'
+                +     '<strong class="dealer-bar-name">' + name + '</strong>'
+                +     '<span class="dealer-bar-value">' + total + '</span>'
+                +     '<small class="dealer-bar-share">Porsi ' + (item.percent || 0) + '% dari pengeluaran kantor</small>'
+                +   '</div>'
+                +   '<div class="dealer-bar-track">'
+                +     '<div class="dealer-bar-fill" style="width:' + percent + '%;"></div>'
+                +   '</div>'
+                + '</div>';
+            }).join('');
+          }
+        }
       }
 
       function updateFoodCoffeeWidget(makanTotal, ngopiTotal) {
