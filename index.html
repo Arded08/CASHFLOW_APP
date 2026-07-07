@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <style>
+      * { box-sizing: border-box; }
+      html, body {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+      body { 
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+        background: #f4f6fb; 
+        color: #111827; 
+        font-size: 18px; 
+        line-height: 1.55;
+      }
+      /* Modal Styles */
+      #appModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.2s ease; }
+      #appModal.show { display: flex; opacity: 1; }
+      .modal-box { background: white; width: 100%; max-width: 400px; padding: 24px; border-radius: 22px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: scale(0.9); transition: transform 0.2s ease; }
+      #appModal.show .modal-box { transform: scale(1); }
+      #appModalIcon { font-size: 48px; margin-bottom: 16px; }
+      #appModalTitle { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+      #appModalMessage { font-size: 16px; margin-bottom: 24px; color: #666; }
+      #appModalActions button { min-height: 50px; font-size: 16px; font-weight: 700; margin: 0; }
+      .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      
+      input,
+      select,
+      textarea,
+      button {
+        font-family: inherit;
+      }
+      .app-shell {
+        width: 100%;
+        max-width: none;
+        min-height: 100vh;
+        margin: 0;
+        padding: 16px;
+      }
+      h1 { font-size: 32px; text-align: center; margin: 16px 0; font-weight: 900; }
+      h2, h3 { font-size: 26px; font-weight: 800; margin-top: 0; margin-bottom: 16px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+      .card { background: white; padding: 24px; border-radius: 22px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); margin-bottom: 18px; width: 100%; max-width: 100%; overflow: hidden; }
+      .btn, button { 
+        display: block; width: 100%; min-height: 64px; padding: 17px 20px; 
+        margin-bottom: 16px; border: none; border-radius: 18px; 
+        background-color: #007bff; color: white; font-size: 19px; font-weight: 900; 
+        cursor: pointer; text-decoration: none; text-align: center; box-sizing: border-box;
+      }
+      .btn:disabled { opacity: 0.65; cursor: not-allowed; }
+      .btn-secondary { background-color: #6c757d; color: white; }
+      input, select, textarea { 
+        width: 100%; min-height: 64px; padding: 16px 18px; 
+        margin-bottom: 16px; border: 1px solid #d1d5db; border-radius: 16px; 
+        box-sizing: border-box; font-size: 19px; background: white; max-width: 100%; min-width: 0;
+      }
+      input::placeholder,
+      textarea::placeholder {
+        font-size: 18px;
+      }
+      
+      .table-scroll { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { width: 100%; min-width: 600px; border-collapse: collapse; margin-top: 10px; font-size: 17px; }
+      table select {
+        min-height: 56px;
+        font-size: 17px;
+      }
+      #historyTable th, #historyTable td { padding: 14px; border: 1px solid #ddd; text-align: left; }
+      #historyTable th { background-color: #f9fafb; }
+      
+      .report-section { margin-bottom: 15px; border: 1px solid #eee; padding: 10px; border-radius: 8px; background-color: #fafafa; }
+      .report-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; font-size: 17px; }
+      .total-summary { font-size: 19px; text-align: right; margin: 5px 0; }
+      
+      .dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .dashboard-item { padding: 18px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
+      .dashboard-item span:last-child { font-size: 26px; font-weight: 900; }
+      .dashboard-item:last-child { border-bottom: none; }
+      
+      .filter-row {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .filter-row > * {
+        min-width: 0;
+      }
+      .filter-row .btn,
+      .filter-row button,
+      .filter-row input,
+      .filter-row select {
+        width: auto;
+        flex: 1 1 0;
+        margin-bottom: 0;
+      }
+      
+      .action-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      @media (max-width: 520px) {
+        body {
+          font-size: 18px;
+        }
+
+        h1 {
+          font-size: 31px;
+        }
+
+        input,
+        select,
+        textarea,
+        .btn,
+        button {
+          min-height: 64px;
+          font-size: 19px;
+        }
+
+        .card {
+          padding: 22px;
+        }
+
+        .dashboard-item span {
+          font-size: 26px;
+        }
+      }
+
+      @media (min-width: 900px) {
+        body {
+          font-size: 14px !important;
+          line-height: 1.45 !important;
+          background: #f4f6fb !important;
+        }
+
+        .app-shell {
+          max-width: 920px !important;
+          margin: 0 auto !important;
+          padding: 18px 22px !important;
+        }
+
+        h1 {
+          font-size: 30px !important;
+          line-height: 1.15 !important;
+          margin: 0 0 18px !important;
+          font-weight: 800 !important;
+          text-align: center !important;
+        }
+
+        h2,
+        h3 {
+          font-size: 20px !important;
+          line-height: 1.25 !important;
+          margin-bottom: 16px !important;
+          font-weight: 700 !important;
+          letter-spacing: 0.02em !important;
+        }
+
+        .card {
+          padding: 22px !important;
+          border-radius: 18px !important;
+          margin-bottom: 16px !important;
+          box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        input,
+        select,
+        textarea {
+          min-height: 44px !important;
+          height: 44px !important;
+          font-size: 14px !important;
+          padding: 10px 12px !important;
+          border-radius: 10px !important;
+          margin-bottom: 10px !important;
+          font-weight: 400 !important;
+        }
+
+        .btn,
+        button {
+          min-height: 44px !important;
+          height: 44px !important;
+          font-size: 15px !important;
+          font-weight: 700 !important;
+          padding: 10px 14px !important;
+          border-radius: 12px !important;
+          margin-bottom: 10px !important;
+        }
+
+        .dashboard-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 12px 18px !important;
+        }
+
+        .dashboard-item {
+          display: grid !important;
+          grid-template-columns: minmax(0, 1fr) auto !important;
+          align-items: center !important;
+          gap: 12px !important;
+          padding: 12px 0 !important;
+          border-bottom: 1px solid #e5e7eb !important;
+        }
+
+        .dashboard-item strong,
+        .dashboard-item label,
+        .dashboard-item .label {
+          font-size: 14px !important;
+          font-weight: 600 !important;
+          color: #111827 !important;
+        }
+
+        .dashboard-item span {
+          font-size: 20px !important;
+          font-weight: 800 !important;
+          color: #0f172a !important;
+          text-align: right !important;
+          white-space: nowrap !important;
+        }
+
+        .dashboard-item.total,
+        .dashboard-total,
+        .total-card {
+          padding: 14px 16px !important;
+          border-radius: 14px !important;
+        }
+
+        .dashboard-item.total span,
+        .dashboard-total span,
+        .total-card span {
+          font-size: 21px !important;
+        }
+
+        .action-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 12px !important;
+          margin-top: 14px !important;
+        }
+
+        .action-grid .btn,
+        .action-grid button {
+          width: 100% !important;
+          min-height: 46px !important;
+          height: 46px !important;
+          font-size: 15px !important;
+        }
+
+        .filter-row {
+          gap: 10px !important;
+        }
+
+        .filter-row .btn,
+        .filter-row button,
+        .filter-row input,
+        .filter-row select {
+          min-height: 42px !important;
+          height: 42px !important;
+          font-size: 14px !important;
+        }
+
+        .dashboard-item span,
+        .dashboard-value,
+        #budget_kantor,
+        #total_kantor,
+        #sisa_budget,
+        #total_pribadi,
+        #total_semua {
+          font-variant-numeric: tabular-nums;
+        }
+
+        table {
+          font-variant-numeric: tabular-nums;
+        }
+
+        th,
+        td {
+          padding: 8px 10px !important;
+        }
+
+        table select {
+          min-height: 34px !important;
+          height: 34px !important;
+          font-size: 13px !important;
+          padding: 4px 8px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Global Modal -->
+      <div id="appModal">
+        <div class="modal-box">
+          <div id="appModalIcon"></div>
+          <div id="appModalTitle"></div>
+          <div id="appModalMessage"></div>
+          <div id="appModalActions">
+            <button class="btn" id="appModalOkButton" onclick="hideAppModal()">OK</button>
+          </div>
+        </div>
+      </div>
+      
+      <h1>CashFlow App</h1>
+      <div class="card">
+        <h3>Dashboard</h3>
+        <input type="month" id="filter_bulan" onchange="loadDashboard()">
+        <div id="dashboard_content" class="dashboard-grid">
+          <div class="dashboard-item"><span>Budget Kantor:</span> <span id="budget_kantor">0</span></div>
+          <div class="dashboard-item"><span>Pengeluaran Kantor:</span> <span id="total_kantor">0</span></div>
+          <div class="dashboard-item"><span>Sisa Budget:</span> <span id="sisa_budget">0</span></div>
+          <div class="dashboard-item"><span>Pengeluaran Pribadi:</span> <span id="total_pribadi">0</span></div>
+          <div class="dashboard-item" style="background:#eef6ff; padding: 18px 14px; border-radius: 16px;"><span>Total Semua:</span> <span id="total_semua">0</span></div>
+        </div>
+      </div>
+    <div class="action-grid">
+        <button class="btn" onclick="showOfficeExpenseForm()">+ Pengeluaran Kantor</button>
+        <button class="btn" onclick="showPersonalExpenseForm()">+ Pengeluaran Pribadi</button>
+      </div>
+      <div class="filter-row">
+          <button class="btn btn-secondary" onclick="showHistory()">Riwayat</button>
+          <button class="btn" onclick="showReport()">Report</button>
+          <button class="btn btn-secondary" onclick="showBudgetSetting()">Setting Budget</button>
+      </div>
+      
+      <div id="budgetSettingPage" class="card" style="display:none;">
+        <h3>Setting Budget Kantor</h3>
+        <input type="number" id="budgetInput" placeholder="Masukkan Budget">
+        <button class="btn" id="btnSaveBudget" onclick="saveBudgetSettingFromForm()">Simpan Budget</button>
+        <button class="btn btn-secondary" onclick="hideBudgetSetting()">Tutup</button>
+      </div>
+      
+      <div id="officeExpenseForm" class="card" style="display:none;">
+        <h3>Form Pengeluaran Kantor</h3>
+        <input type="date" id="off_tanggal">
+        <select id="off_dealer_code" onchange="handleDealerChange()">
+          <option value="">Pilih Dealer</option>
+          <option value="5070001">5070001 - Budiana 156</option>
+          <option value="5070002">5070002 - Surya Utama Motor</option>
+          <option value="5070029">5070029 - Trio Motor</option>
+        </select>
+        <input type="text" id="off_nama_dealer" placeholder="Nama Dealer" readonly>
+        <input type="text" id="off_nama_tempat" placeholder="Nama Tempat">
+        <input type="text" id="off_deskripsi" placeholder="Deskripsi">
+        <input type="text" id="off_keterangan" placeholder="Keterangan">
+        <input type="number" id="off_nominal" placeholder="Nominal">
+        <input type="file" id="off_foto" accept="image/*">
+        <button class="btn" id="btnSaveOffice" onclick="submitOfficeExpense()">Simpan</button>
+        <button class="btn btn-secondary" onclick="hideOfficeExpenseForm()">Batal</button>
+      </div>
+
+      <div id="personalExpenseForm" class="card" style="display:none;">
+        <h3>Form Pengeluaran Pribadi</h3>
+        <input type="date" id="tanggal">
+        <input type="text" id="deskripsi" placeholder="Deskripsi">
+        <input type="number" id="nominal" placeholder="Nominal">
+        <button class="btn" id="btnSavePersonal" onclick="submitPersonalExpense()">Simpan</button>
+        <button class="btn btn-secondary" onclick="hidePersonalExpenseForm()">Batal</button>
+      </div>
+    </div>
+    
+    <script>
+      function clearValueById(id, value) {
+        var el = document.getElementById(id);
+        if (el) {
+          el.value = value || '';
+        }
+      }
+
+      // Modal Logic
+      let modalAutoCloseTimer = null;
+      function showAppModal(type, title, message, options = {}) {
+        const modal = document.getElementById('appModal');
+        const icon = document.getElementById('appModalIcon');
+        const titleEl = document.getElementById('appModalTitle');
+        const msgEl = document.getElementById('appModalMessage');
+        const actions = document.getElementById('appModalActions');
+        const okBtn = document.getElementById('appModalOkButton');
+        
+        if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
+        
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+        
+        if (type === 'loading') {
+          icon.innerHTML = '<div class="spinner"></div>';
+          actions.style.display = 'none';
+        } else {
+          actions.style.display = 'block';
+          okBtn.style.display = (options.showOk !== false) ? 'block' : 'none';
+          if (type === 'success') icon.innerText = '✅';
+          else if (type === 'error') icon.innerText = '⚠️';
+          else if (type === 'info') icon.innerText = 'ℹ️';
+          
+          if (options.autoCloseMs) {
+            modalAutoCloseTimer = setTimeout(hideAppModal, options.autoCloseMs);
+          }
+        }
+        
+        okBtn.onclick = () => {
+          hideAppModal();
+          if (options.onOk) options.onOk();
+        };
+        
+        modal.classList.add('show');
+      }
+      function hideAppModal() {
+        const modal = document.getElementById('appModal');
+        modal.classList.remove('show');
+        if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
+      }
+      function showLoadingModal(msg) { showAppModal('loading', 'Mohon Tunggu', msg || 'Memproses data...'); }
+      function showSuccessModal(msg, onOk) { showAppModal('success', 'Berhasil', msg, { onOk: onOk, autoCloseMs: 1200 }); }
+      function showErrorModal(msg) { showAppModal('error', 'Terjadi Kesalahan', msg); }
+      function showInfoModal(msg) { showAppModal('info', 'Info', msg); }
+
+      function formatRupiah(value) {
+        var val = parseFloat(value);
+        if (isNaN(val)) return 'Rp 0';
+        return 'Rp ' + Math.round(val).toLocaleString('id-ID');
+      }
+      function isValidUrl(value) { return value && typeof value === 'string' && value.indexOf('http') === 0; }
+      window.onload = function() {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = String(now.getMonth() + 1).padStart(2, '0');
+        var monthStr = year + '-' + month;
+        document.getElementById('filter_bulan').value = monthStr;
+        var histBulan = document.getElementById('hist_filter_bulan');
+        if (histBulan) histBulan.value = monthStr;
+        loadDashboard();
+      };
+      var isSaving = false;
+      var lastReportText = '';
+      
+      const DEALER_MASTER = {
+        '5070001': 'Budiana 156',
+        '5070002': 'Surya Utama Motor',
+        '5070029': 'Trio Motor'
+      };
+
+      function handleDealerChange() {
+        var code = document.getElementById('off_dealer_code').value;
+        var nameInput = document.getElementById('off_nama_dealer');
+        nameInput.value = DEALER_MASTER[code] || '';
+      }
+
+      function loadDashboard() {
+        var month = document.getElementById('filter_bulan').value;
+        google.script.run.withFailureHandler(function(err) { showErrorModal('Gagal memuat dashboard: ' + err); }).withSuccessHandler(function(res) {
+          if (res.ok) {
+            var d = res.data;
+            document.getElementById('budget_kantor').innerText = formatRupiah(d.budgetKantor);
+            document.getElementById('total_kantor').innerText = formatRupiah(d.totalPengeluaranKantor || d.totalKantor);
+            document.getElementById('sisa_budget').innerText = formatRupiah(d.sisaBudgetKantor);
+            document.getElementById('total_pribadi').innerText = formatRupiah(d.totalPengeluaranPribadi || d.totalPribadi);
+            document.getElementById('total_semua').innerText = formatRupiah(d.totalSemuaPengeluaran || d.totalSemua);
+          } else showErrorModal('Gagal memuat dashboard: ' + (res.message || 'Error'));
+        }).getDashboardData(month);
+      }
+      function showPersonalExpenseForm() { document.getElementById('personalExpenseForm').style.display = 'block'; }
+      function hidePersonalExpenseForm() { resetPersonalExpenseForm(); document.getElementById('personalExpenseForm').style.display = 'none'; }
+      function showOfficeExpenseForm() { document.getElementById('officeExpenseForm').style.display = 'block'; }
+      function hideOfficeExpenseForm() { resetOfficeExpenseForm(); document.getElementById('officeExpenseForm').style.display = 'none'; }
+
+function resetPersonalExpenseForm() {
+  console.log('resetPersonalExpenseForm called');
+  clearValueById('tanggal', new Date().toISOString().slice(0, 10));
+  clearValueById('deskripsi', '');
+  clearValueById('nominal', '');
+}
+
+function resetOfficeExpenseForm() {
+  console.log('resetOfficeExpenseForm called');
+
+  clearValueById('off_dealer_code', '');
+  clearValueById('off_nama_dealer', '');
+  clearValueById('off_tempat', '');
+  clearValueById('off_nama_tempat', '');
+  clearValueById('off_deskripsi', '');
+  clearValueById('off_keterangan', '');
+  clearValueById('off_nominal', '');
+  clearValueById('off_tanggal', new Date().toISOString().slice(0, 10));
+
+  var foto = document.getElementById('off_foto');
+  if (foto) foto.value = '';
+
+  if (typeof handleDealerChange === 'function') {
+    handleDealerChange();
+  }
+}
+
+function submitOfficeExpense() {
+        if (isSaving) return;
+        var fileInput = document.getElementById('off_foto');
+        var file = fileInput.files[0];
+        
+        var dealerCode = document.getElementById('off_dealer_code').value;
+        var namaDealer = document.getElementById('off_nama_dealer').value;
+
+        if (!dealerCode) { showErrorModal('Pilih dealer terlebih dahulu'); return; }
+        if (!namaDealer) { showErrorModal('Nama dealer belum terisi'); return; }
+
+        var payload = {
+          tanggal: document.getElementById('off_tanggal').value,
+          dealer_code: dealerCode,
+          nama_dealer: namaDealer,
+          nama_tempat: document.getElementById('off_nama_tempat').value,
+          deskripsi: document.getElementById('off_deskripsi').value,
+          keterangan_tambahan: document.getElementById('off_keterangan').value,
+          nominal: document.getElementById('off_nominal').value
+        };
+        isSaving = true;
+        showLoadingModal(file ? 'Mengupload kwitansi dan menyimpan data...' : 'Menyimpan pengeluaran kantor...');
+        
+        if (file) {
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            var fileData = { base64: e.target.result.split(',')[1], contentType: file.type };
+            callSaveOfficeExpense(payload, fileData);
+          };
+          reader.readAsDataURL(file);
+        } else callSaveOfficeExpense(payload, null);
+      }
+      function callSaveOfficeExpense(payload, fileData) {
+        google.script.run
+          .withFailureHandler(function(err) { isSaving = false; showErrorModal('Gagal menyimpan: ' + err); })
+          .withSuccessHandler(function(res) {
+            isSaving = false;
+            hideAppModal();
+
+            if (!res || !res.ok) {
+              showErrorModal(res && res.message ? res.message : 'Gagal menyimpan pengeluaran kantor');
+              return;
+            }
+
+            resetOfficeExpenseForm();
+            hideOfficeExpenseForm();
+            loadDashboard();
+
+            if (document.getElementById('historyPage') && document.getElementById('historyPage').style.display !== 'none') {
+              loadHistory();
+            }
+
+            showSuccessModal('Pengeluaran kantor berhasil disimpan');
+          })
+          .saveOfficeExpense(payload, fileData);
+      }
+      function submitPersonalExpense() {
+        if (isSaving) return;
+        var payload = {
+          tanggal: document.getElementById('tanggal').value,
+          deskripsi: document.getElementById('deskripsi').value,
+          nominal: document.getElementById('nominal').value
+        };
+        isSaving = true;
+        showLoadingModal('Menyimpan pengeluaran pribadi...');
+        google.script.run
+          .withFailureHandler(function(err) { isSaving = false; showErrorModal('Gagal menyimpan: ' + err); })
+          .withSuccessHandler(function(res) {
+            isSaving = false;
+            hideAppModal();
+
+            if (!res || !res.ok) {
+              showErrorModal(res && res.message ? res.message : 'Gagal menyimpan pengeluaran pribadi');
+              return;
+            }
+
+            resetPersonalExpenseForm();
+            hidePersonalExpenseForm();
+            loadDashboard();
+
+            if (document.getElementById('historyPage') && document.getElementById('historyPage').style.display !== 'none') {
+              loadHistory();
+            }
+
+            showSuccessModal('Pengeluaran pribadi berhasil disimpan');
+          })
+          .savePersonalExpense(payload);
+      }
+      function showBudgetSetting() { document.getElementById('budgetSettingPage').style.display = 'block'; loadBudgetSetting(); }
+      function hideBudgetSetting() { document.getElementById('budgetSettingPage').style.display = 'none'; }
+      function loadBudgetSetting() {
+        document.getElementById('budgetInput').value = '';
+        google.script.run.withFailureHandler(function(err) { showErrorModal('Gagal load budget: ' + err); }).withSuccessHandler(function(res) {
+          if (res.ok) document.getElementById('budgetInput').value = res.data.budget;
+          else showErrorModal('Gagal load budget: ' + res.message);
+        }).getBudgetSetting();
+      }
+      function saveBudgetSettingFromForm() {
+        var val = document.getElementById('budgetInput').value;
+        if (!val) { showErrorModal('Budget tidak boleh kosong'); return; }
+        isSaving = true;
+        showLoadingModal('Menyimpan budget...');
+        google.script.run.withFailureHandler(function(err) { isSaving = false; showErrorModal('Gagal simpan budget: ' + err); }).withSuccessHandler(function(res) {
+          isSaving = false;
+          if (res.ok) {
+            showSuccessModal('Budget berhasil disimpan', function() {
+              hideBudgetSetting();
+              loadDashboard();
+            });
+          } else showErrorModal('Gagal simpan budget: ' + res.message);
+        }).saveBudgetSetting(val);
+      }
+    </script>
+    
+    <div id="reportPage" class="card" style="display:none;">
+      <h3>Report Bulanan</h3>
+      <input type="month" id="rep_filter_bulan" onchange="loadReport()">
+      <div id="reportContent"></div>
+      <button class="btn btn-secondary" onclick="hideReport()">Tutup</button>
+    </div>
+    <script>
+      function showReport() { document.getElementById('reportPage').style.display = 'block'; loadReport(); }
+      function hideReport() { document.getElementById('reportPage').style.display = 'none'; }
+      function loadReport() {
+        var month = document.getElementById('rep_filter_bulan').value || new Date().toISOString().slice(0, 7);
+        var container = document.getElementById('reportContent');
+        google.script.run.withSuccessHandler(function(res) {
+          if (res.ok) {
+            var data = res.data;
+            var html = '<h4>Report Kantor</h4><div class="report-section">';
+            data.reportKantor.forEach(function(item) {
+              html += `<div class="report-item"><strong>${item.tanggal}</strong> - ${item.nama_dealer} (${item.deskripsi}): <strong>${formatRupiah(item.nominal)}</strong></div>`;
+            });
+            html += '</div><h4>Report Pribadi</h4><div class="report-section">';
+            data.reportPribadi.forEach(function(item) {
+              html += `<div class="report-item"><strong>${item.tanggal}</strong> - ${item.deskripsi}: <strong>${formatRupiah(item.nominal)}</strong></div>`;
+            });
+            html += '</div><button class="btn" onclick="copyCurrentReport()">Copy Report</button>';
+            container.innerHTML = html;
+            lastReportText = 'Report Bulanan ' + month + ' Total: ' + formatRupiah(data.totalSemua);
+          }
+        }).getReportData(month);
+      }
+      function copyCurrentReport() { navigator.clipboard.writeText(lastReportText).then(() => showSuccessModal('Report berhasil disalin!')); }
+    </script>
+
+    <div id="historyPage" class="card" style="display:none;">
+      <h3>Riwayat Transaksi</h3>
+        <div class="filter-row">
+        <input type="month" id="hist_filter_bulan" onchange="loadHistory()">
+        <select id="hist_filter_tipe" onchange="loadHistory()">
+          <option value="SEMUA">SEMUA</option>
+          <option value="KANTOR">KANTOR</option>
+          <option value="PRIBADI">PRIBADI</option>
+        </select>
+      </div>
+      <div class="table-scroll">
+        <table id="historyTable">
+          <thead><tr><th>Tanggal</th><th>Tipe</th><th>Dealer</th><th>Deskripsi</th><th>Nominal</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-secondary" style="margin-top:10px;" onclick="hideHistory()">Tutup</button>
+    </div>
+    <script>
+      function showHistory() { document.getElementById('historyPage').style.display = 'block'; loadHistory(); }
+      function hideHistory() { document.getElementById('historyPage').style.display = 'none'; }
+      function loadHistory() {
+        var filter = { bulan: document.getElementById('hist_filter_bulan').value, tipe: document.getElementById('hist_filter_tipe').value };
+        google.script.run.withSuccessHandler(function(res) {
+          var tbody = document.getElementById('historyBody');
+          tbody.innerHTML = '';
+          res.data.forEach(function(trx) {
+            var row = tbody.insertRow();
+            row.insertCell(0).innerText = trx.tanggal;
+            row.insertCell(1).innerText = trx.tipe;
+            row.insertCell(2).innerText = trx.nama_dealer || '-';
+            row.insertCell(3).innerText = trx.deskripsi;
+            row.insertCell(4).innerText = formatRupiah(trx.nominal);
+          });
+        }).getTransactions(filter);
+      }
+    </script>
+  </body>
+</html>
