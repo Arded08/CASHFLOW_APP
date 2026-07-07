@@ -1389,21 +1389,108 @@ function submitOfficeExpense() {
         google.script.run.withSuccessHandler(function(res) {
           if (res.ok) {
             var data = res.data;
-            var html = '<h4>Report Kantor</h4><div class="report-section">';
-            data.reportKantor.forEach(function(item) {
-              html += `<div class="report-item"><strong>${item.tanggal}</strong> - ${item.nama_dealer} (${item.deskripsi}): <strong>${formatRupiah(item.nominal)}</strong></div>`;
-            });
-            html += '</div><h4>Report Pribadi</h4><div class="report-section">';
-            data.reportPribadi.forEach(function(item) {
-              html += `<div class="report-item"><strong>${item.tanggal}</strong> - ${item.deskripsi}: <strong>${formatRupiah(item.nominal)}</strong></div>`;
-            });
-            html += '</div><button class="btn" onclick="copyCurrentReport()">Copy Report</button>';
+            var summary = data.summary;
+            var html = `<h4>Report Bulanan ${month}</h4>`;
+
+            // Ringkasan
+            html += `<div class="card" style="background:#fafafa; border:1px solid #eee; margin-bottom:15px; padding:15px;">
+              <h5>RINGKASAN</h5>
+              <div>Budget Kantor: ${formatRupiah(summary.budgetKantor)}</div>
+              <div>Pengeluaran Kantor: ${formatRupiah(summary.totalKantor)}</div>
+              <div>Sisa Budget: ${formatRupiah(summary.sisaBudgetKantor)}</div>
+              <div>Pengeluaran Pribadi: ${formatRupiah(summary.totalPribadi)}</div>
+              <div>Total Semua: ${formatRupiah(summary.totalSemua)}</div>
+              <div>Makan: ${formatRupiah(summary.totalMakan)}</div>
+              <div>Ngopi: ${formatRupiah(summary.totalNgopi)}</div>
+            </div>`;
+
+            // Top Dealer
+            html += `<div class="card" style="background:#fafafa; border:1px solid #eee; margin-bottom:15px; padding:15px;">
+              <h5>TOP DEALER</h5>`;
+            if (summary.topDealerList && summary.topDealerList.length > 0) {
+              summary.topDealerList.slice(0, 3).forEach(function(dealer, index) {
+                html += `<div>#${index + 1} ${dealer.nama_dealer || dealer.dealer_code} - ${formatRupiah(dealer.total)} - ${dealer.percent}%</div>`;
+              });
+            } else {
+              html += `<div>Belum ada data dealer</div>`;
+            }
+            html += `</div>`;
+
+            // Detail Pengeluaran Kantor
+            html += `<h4>Detail Pengeluaran Kantor</h4><div class="report-section">`;
+            if (data.reportKantor && data.reportKantor.length > 0) {
+              data.reportKantor.forEach(function(item) {
+                html += `<div class="report-item"><strong>${item.tanggal}</strong> - ${item.nama_dealer} - ${item.deskripsi}: <strong>${formatRupiah(item.nominal)}</strong></div>`;
+              });
+            } else {
+              html += `<div>Tidak ada pengeluaran kantor</div>`;
+            }
+            html += `</div>`;
+
+            // Detail Pengeluaran Pribadi
+            html += `<h4>Detail Pengeluaran Pribadi</h4><div class="report-section">`;
+            if (data.reportPribadi && data.reportPribadi.length > 0) {
+              data.reportPribadi.forEach(function(item) {
+                html += `<div class="report-item"><strong>${item.tanggal}</strong> - ${item.deskripsi}: <strong>${formatRupiah(item.nominal)}</strong></div>`;
+              });
+            } else {
+              html += `<div>Tidak ada pengeluaran pribadi</div>`;
+            }
+            html += `</div>`;
+
+            html += '<button class="btn" onclick="copyCurrentReport()">Copy Report</button>';
             container.innerHTML = html;
-            lastReportText = 'Report Bulanan ' + month + ' Total: ' + formatRupiah(data.totalSemua);
+
+            // Generate lastReportText for WhatsApp
+            lastReportText = `📊 REPORT CASHFLOW BULANAN\nPeriode: ${month}\n\n` +
+                             `RINGKASAN\n` +
+                             `Budget Kantor: ${formatRupiah(summary.budgetKantor)}\n` +
+                             `Pengeluaran Kantor: ${formatRupiah(summary.totalKantor)}\n` +
+                             `Sisa Budget: ${formatRupiah(summary.sisaBudgetKantor)}\n` +
+                             `Pengeluaran Pribadi: ${formatRupiah(summary.totalPribadi)}\n` +
+                             `Total Semua: ${formatRupiah(summary.totalSemua)}\n\n` +
+                             `MAKAN VS NGOPI\n` +
+                             `Makan: ${formatRupiah(summary.totalMakan)}\n` +
+                             `Ngopi: ${formatRupiah(summary.totalNgopi)}\n\n`;
+            
+            lastReportText += `TOP DEALER\n`;
+            if (summary.topDealerList && summary.topDealerList.length > 0) {
+              summary.topDealerList.slice(0, 3).forEach(function(dealer, index) {
+                lastReportText += `${index + 1}. ${dealer.nama_dealer || dealer.dealer_code} - ${formatRupiah(dealer.total)} - ${dealer.percent}%\n`;
+              });
+            } else {
+              lastReportText += `Belum ada data dealer\n`;
+            }
+            lastReportText += `\n`;
+
+            lastReportText += `DETAIL KANTOR\n`;
+            if (data.reportKantor && data.reportKantor.length > 0) {
+              data.reportKantor.forEach(function(item, index) {
+                lastReportText += `${index + 1}. ${item.tanggal} | ${item.nama_dealer} | ${item.deskripsi} | ${formatRupiah(item.nominal)}\n`;
+              });
+            } else {
+              lastReportText += `Tidak ada pengeluaran kantor\n`;
+            }
+            lastReportText += `\n`;
+
+            lastReportText += `DETAIL PRIBADI\n`;
+            if (data.reportPribadi && data.reportPribadi.length > 0) {
+              data.reportPribadi.forEach(function(item, index) {
+                lastReportText += `${index + 1}. ${item.tanggal} | ${item.deskripsi} | ${formatRupiah(item.nominal)}\n`;
+              });
+            } else {
+              lastReportText += `Tidak ada pengeluaran pribadi\n`;
+            }
           }
         }).getReportData(month);
       }
-      function copyCurrentReport() { navigator.clipboard.writeText(lastReportText).then(() => showSuccessModal('Report berhasil disalin!')); }
+      function copyCurrentReport() {
+        if (!lastReportText) {
+          showErrorModal('Report belum dimuat');
+          return;
+        }
+        navigator.clipboard.writeText(lastReportText).then(() => showSuccessModal('Report berhasil disalin!'));
+      }
     </script>
 
     <div id="historyPage" class="card" style="display:none;">

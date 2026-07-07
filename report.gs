@@ -131,6 +131,12 @@ function getReportData(month) {
 
     var totalSemua = totalKantor + totalPribadi;
 
+    var dashboardSummary = {};
+    var dashboardRes = getDashboardData(month);
+    if (dashboardRes && dashboardRes.ok && dashboardRes.data) {
+      dashboardSummary = dashboardRes.data;
+    }
+
     return successResponse({
       reportKantor: reportKantor,
       reportPribadi: reportPribadi,
@@ -138,7 +144,18 @@ function getReportData(month) {
       totalPribadi: totalPribadi,
       totalSemua: totalSemua,
       jumlahTransaksiKantor: jumlahTransaksiKantor,
-      jumlahTransaksiPribadi: jumlahTransaksiPribadi
+      jumlahTransaksiPribadi: jumlahTransaksiPribadi,
+      summary: {
+        bulan: month,
+        budgetKantor: Number(dashboardSummary.budgetKantor || 0),
+        totalKantor: Number(dashboardSummary.totalPengeluaranKantor || dashboardSummary.totalKantor || totalKantor || 0),
+        sisaBudgetKantor: Number(dashboardSummary.sisaBudgetKantor || 0),
+        totalPribadi: Number(dashboardSummary.totalPengeluaranPribadi || dashboardSummary.totalPribadi || totalPribadi || 0),
+        totalSemua: Number(dashboardSummary.totalSemuaPengeluaran || dashboardSummary.totalSemua || totalSemua || 0),
+        totalMakan: Number(dashboardSummary.totalMakan || 0),
+        totalNgopi: Number(dashboardSummary.totalNgopi || 0),
+        topDealerList: Array.isArray(dashboardSummary.topDealerList) ? dashboardSummary.topDealerList : []
+      }
     });
   } catch (err) {
     return errorResponse(err.message || String(err));
