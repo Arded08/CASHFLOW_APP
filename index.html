@@ -346,71 +346,216 @@
       }
 
         @media (max-width: 899px), (hover: none) and (pointer: coarse) {
-  .app-layout {
-    display: block !important;
+    .app-shell { padding: 12px; }
+    
+    .dashboard-mobile-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .dashboard-food-card {
+      background:
+        radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.14), transparent 30%),
+        rgba(26, 28, 36, 0.96);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 28px;
+      padding: 22px;
+      box-shadow: 0 18px 42px rgba(0,0,0,0.28);
+    }
+    .food-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .food-card-header small {
+      display: block;
+      color: rgba(255,255,255,0.52);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .food-card-header h4 {
+      margin: 0;
+      color: #f8fafc;
+      font-size: 25px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+    .food-card-header > span {
+      font-size: 30px;
+      filter: drop-shadow(0 0 12px rgba(34,211,238,0.35));
+    }
+    .food-row {
+      margin-top: 14px;
+    }
+    .food-row-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .food-row-top span {
+      color: rgba(255,255,255,0.82);
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .food-row-top strong {
+      color: #f8fafc;
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .food-row small {
+      display: block;
+      margin-top: 5px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      text-align: right;
+    }
+    .food-progress {
+      height: 11px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .food-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+    .food-makan-fill {
+      background: linear-gradient(90deg, #fb923c, #f97316);
+      box-shadow: 0 0 18px rgba(249,115,22,0.45);
+    }
+    .food-ngopi-fill {
+      background: linear-gradient(90deg, #22d3ee, #6366f1);
+      box-shadow: 0 0 18px rgba(34,211,238,0.45);
+    }
+
+    .dashboard-hero-card {
+      background: #1a1c24;
+      border: 1px solid #333;
+      border-radius: 32px;
+      padding: 24px;
+      color: #fff;
+    }
+    .hero-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .hero-header span { font-weight: 800; font-size: 20px; }
+    .hero-label { font-size: 14px; color: #888; }
+    .hero-value { font-size: 38px; font-weight: 800; margin-bottom: 12px; }
+    .budget-progress { height: 12px; background: #333; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+    .budget-progress-bar { height: 100%; background: linear-gradient(90deg, #06b6d4, #8b5cf6); border-radius: 6px; }
+    .hero-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hero-meta small { color: #888; font-size: 12px; }
+    .hero-meta div { font-weight: 700; font-size: 18px; }
+
+    .dashboard-mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .dashboard-mini-card {
+      background: #1a1c24;
+      border: 1px solid #333;
+      border-radius: 24px;
+      padding: 16px;
+      color: #fff;
+    }
+    .dashboard-mini-card small { color: #888; font-size: 12px; }
+    .dashboard-mini-card div { font-size: 22px; font-weight: 700; }
+
+    .dashboard-chart-card, .dashboard-ranking-card {
+      background: #1a1c24;
+      border: 1px solid #333;
+      border-radius: 24px;
+      padding: 20px;
+      color: #fff;
+    }
+    .chart-placeholder {
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      padding-top: 20px;
+    }
+    .chart-bar {
+      flex: 1;
+      background: linear-gradient(0deg, #06b6d4, #8b5cf6);
+      border-radius: 4px;
+    }
+    .ranking-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #333;
+      font-size: 15px;
+    }
+    .ranking-item:last-child { border: none; }
+
+    .app-layout {
+        display: block !important;
+    }
+
+    .app-sidebar {
+        position: fixed !important;
+        left: 14px !important;
+        right: 14px !important;
+        bottom: max(14px, env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        z-index: 9000 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        height: auto !important;
+
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        gap: 12px !important;
+
+        padding: 14px !important;
+        margin: 0 !important;
+        border-radius: 34px !important;
+
+        background: rgba(15, 18, 28, 0.94) !important;
+        border: 1px solid rgba(255,255,255,0.10) !important;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.42) !important;
+        backdrop-filter: blur(18px) !important;
+        -webkit-backdrop-filter: blur(18px) !important;
+
+        transform: translateZ(0) !important;
+        will-change: transform !important;
+    }
+
+    .sidebar-icon-btn {
+        flex: 0 0 auto !important;
+        width: 60px !important;
+        height: 60px !important;
+        min-width: 60px !important;
+        min-height: 60px !important;
+        max-width: 60px !important;
+        max-height: 60px !important;
+
+        font-size: 24px !important;
+        line-height: 1 !important;
+        border-radius: 20px !important;
+
+        padding: 0 !important;
+        margin: 0 !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .app-content {
+        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+    }
+
+    body {
+        padding-bottom: env(safe-area-inset-bottom) !important;
+        background: #0f111a !important;
+    }
   }
-
-  .app-sidebar {
-    position: fixed !important;
-    left: 14px !important;
-    right: 14px !important;
-    bottom: max(14px, env(safe-area-inset-bottom)) !important;
-    top: auto !important;
-    z-index: 9000 !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: auto !important;
-
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-around !important;
-    align-items: center !important;
-    gap: 12px !important;
-
-    padding: 14px !important;
-    margin: 0 !important;
-    border-radius: 34px !important;
-
-    background: rgba(15, 18, 28, 0.94) !important;
-    border: 1px solid rgba(255,255,255,0.10) !important;
-    box-shadow: 0 18px 40px rgba(0,0,0,0.42) !important;
-    backdrop-filter: blur(18px) !important;
-    -webkit-backdrop-filter: blur(18px) !important;
-
-    transform: translateZ(0) !important;
-    will-change: transform !important;
-  }
-
-  .sidebar-icon-btn {
-    flex: 0 0 auto !important;
-    width: 106px !important;
-    height: 106px !important;
-    min-width: 106px !important;
-    min-height: 106px !important;
-    max-width: 106px !important;
-    max-height: 106px !important;
-
-    font-size: 49px !important;
-    line-height: 1 !important;
-    border-radius: 34px !important;
-
-    padding: 0 !important;
-    margin: 0 !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .app-content {
-    padding-bottom: calc(190px + env(safe-area-inset-bottom)) !important;
-  }
-
-  body {
-    padding-bottom: env(safe-area-inset-bottom) !important;
-  }
-}
       }
     </style>
   </head>
@@ -439,10 +584,92 @@
 
         <main class="app-content">
           <h1>CashFlow App</h1>
-          <div class="card">
-            <h3>Dashboard</h3>
-            <input type="month" id="filter_bulan" onchange="loadDashboard()">
-            <div id="dashboard_content" class="dashboard-grid">
+          <div class="card" style="background:transparent; box-shadow:none; padding:0; margin-bottom:0;">
+            <div class="dashboard-mobile-shell">
+                <div class="dashboard-hero-card">
+                    <div class="hero-header">
+                        <span>Dashboard</span>
+                        <input type="month" id="filter_bulan" onchange="loadDashboard()">
+                    </div>
+                    <div class="hero-label">Budget Kantor</div>
+                    <div class="hero-value" id="budget_kantor">0</div>
+                    <div class="budget-progress">
+                        <div class="budget-progress-bar" id="progress_bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="hero-meta">
+                        <div>
+                            <small>Pengeluaran</small>
+                            <div id="total_kantor">0</div>
+                        </div>
+                        <div>
+                            <small>Sisa</small>
+                            <div id="sisa_budget">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-mini-grid">
+                    <div class="dashboard-mini-card">
+                        <small>Dealer Terbesar</small>
+                        <div id="dealer_terbesar">-</div>
+                    </div>
+                    <div class="dashboard-mini-card">
+                        <small>Total Transaksi</small>
+                        <div id="jml_kantor">0</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-chart-card">
+                    <small>Top Dealer</small>
+                    <div class="chart-placeholder">
+                        <div class="chart-bar" style="height: 60%"></div>
+                        <div class="chart-bar" style="height: 80%"></div>
+                        <div class="chart-bar" style="height: 40%"></div>
+                    </div>
+                </div>
+
+<div class="dashboard-food-card">
+  <div class="food-card-header">
+    <div>
+      <small>Spending Category</small>
+      <h4>Makan vs Ngopi</h4>
+    </div>
+    <span>🍽️☕</span>
+  </div>
+
+  <div class="food-row">
+    <div class="food-row-top">
+      <span>🍽️ Makan</span>
+      <strong id="food_makan_value">Rp 0</strong>
+    </div>
+    <div class="food-progress">
+      <div class="food-progress-fill food-makan-fill" id="food_makan_bar" style="width:0%;"></div>
+    </div>
+    <small id="food_makan_percent">0%</small>
+  </div>
+
+  <div class="food-row">
+    <div class="food-row-top">
+      <span>☕ Ngopi</span>
+      <strong id="food_ngopi_value">Rp 0</strong>
+    </div>
+    <div class="food-progress">
+      <div class="food-progress-fill food-ngopi-fill" id="food_ngopi_bar" style="width:0%;"></div>
+    </div>
+    <small id="food_ngopi_percent">0%</small>
+  </div>
+</div>
+
+                <div class="dashboard-ranking-card">
+                    <small>Top 3 Dealer</small>
+                    <div class="ranking-list" id="ranking_list">
+                        <div class="ranking-item"><span>1. Dealer A</span> <span>Rp 0</span></div>
+                        <div class="ranking-item"><span>2. Dealer B</span> <span>Rp 0</span></div>
+                        <div class="ranking-item"><span>3. Dealer C</span> <span>Rp 0</span></div>
+                    </div>
+                </div>
+            </div>
+            <div id="dashboard_content" style="display:none;">
               <div class="dashboard-item"><span>Budget Kantor:</span> <span id="budget_kantor">0</span></div>
               <div class="dashboard-item"><span>Pengeluaran Kantor:</span> <span id="total_kantor">0</span></div>
               <div class="dashboard-item"><span>Sisa Budget:</span> <span id="sisa_budget">0</span></div>
@@ -584,9 +811,34 @@
             document.getElementById('sisa_budget').innerText = formatRupiah(d.sisaBudgetKantor);
             document.getElementById('total_pribadi').innerText = formatRupiah(d.totalPengeluaranPribadi || d.totalPribadi);
             document.getElementById('total_semua').innerText = formatRupiah(d.totalSemuaPengeluaran || d.totalSemua);
+            
+            updateFoodCoffeeWidget(0, 0);
           } else showErrorModal('Gagal memuat dashboard: ' + (res.message || 'Error'));
         }).getDashboardData(month);
       }
+
+      function updateFoodCoffeeWidget(makanTotal, ngopiTotal) {
+        makanTotal = Number(makanTotal || 0);
+        ngopiTotal = Number(ngopiTotal || 0);
+        var total = makanTotal + ngopiTotal;
+        var makanPct = total > 0 ? Math.round((makanTotal / total) * 100) : 0;
+        var ngopiPct = total > 0 ? Math.round((ngopiTotal / total) * 100) : 0;
+
+        var makanValue = document.getElementById('food_makan_value');
+        var ngopiValue = document.getElementById('food_ngopi_value');
+        var makanBar = document.getElementById('food_makan_bar');
+        var ngopiBar = document.getElementById('food_ngopi_bar');
+        var makanPercent = document.getElementById('food_makan_percent');
+        var ngopiPercent = document.getElementById('food_ngopi_percent');
+
+        if (makanValue) makanValue.textContent = formatRupiah(makanTotal);
+        if (ngopiValue) ngopiValue.textContent = formatRupiah(ngopiTotal);
+        if (makanBar) makanBar.style.width = makanPct + '%';
+        if (ngopiBar) ngopiBar.style.width = ngopiPct + '%';
+        if (makanPercent) makanPercent.textContent = makanPct + '% dari Makan/Ngopi';
+        if (ngopiPercent) ngopiPercent.textContent = ngopiPct + '% dari Makan/Ngopi';
+      }
+
       function showPersonalExpenseForm() { document.getElementById('personalExpenseForm').style.display = 'block'; }
       function hidePersonalExpenseForm() { resetPersonalExpenseForm(); document.getElementById('personalExpenseForm').style.display = 'none'; }
       function showOfficeExpenseForm() { document.getElementById('officeExpenseForm').style.display = 'block'; }
