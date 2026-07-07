@@ -1440,17 +1440,8 @@ function submitOfficeExpense() {
               html += `<div>Tidak ada pengeluaran kantor</div>`;
             }
             html += `</div>`;
-
-            // Detail Pengeluaran Pribadi
-            html += `<h4>Detail Pengeluaran Pribadi</h4><div class="report-section">`;
-            if (data.reportPribadi && data.reportPribadi.length > 0) {
-              data.reportPribadi.forEach(function(item) {
-                html += `<div class="report-item"><strong>${item.tanggal}</strong> - ${item.deskripsi}: <strong>${formatRupiah(item.nominal)}</strong></div>`;
-              });
-            } else {
-              html += `<div>Tidak ada pengeluaran pribadi</div>`;
-            }
-            html += `</div>`;
+            
+            html += `<div class="report-item"><em>Catatan: Transaksi pribadi hanya ditampilkan sebagai total monitoring.</em></div>`;
 
             html += '<button class="btn" onclick="copyCurrentReport()">Copy Report</button>';
             container.innerHTML = html;
@@ -1463,6 +1454,7 @@ function submitOfficeExpense() {
                              `Sisa Budget: ${formatRupiah(summary.sisaBudgetKantor)}\n` +
                              `Pengeluaran Pribadi: ${formatRupiah(summary.totalPribadi)}\n` +
                              `Total Semua: ${formatRupiah(summary.totalSemua)}\n\n` +
+                             `Catatan: Transaksi pribadi hanya ditampilkan sebagai total monitoring.\n\n` +
                              `MAKAN VS NGOPI\n` +
                              `Makan: ${formatRupiah(summary.totalMakan)}\n` +
                              `Ngopi: ${formatRupiah(summary.totalNgopi)}\n\n`;
@@ -1486,15 +1478,6 @@ function submitOfficeExpense() {
               lastReportText += `Tidak ada pengeluaran kantor\n`;
             }
             lastReportText += `\n`;
-
-            lastReportText += `DETAIL PRIBADI\n`;
-            if (data.reportPribadi && data.reportPribadi.length > 0) {
-              data.reportPribadi.forEach(function(item, index) {
-                lastReportText += `${index + 1}. ${item.tanggal} | ${item.deskripsi} | ${formatRupiah(item.nominal)}\n`;
-              });
-            } else {
-              lastReportText += `Tidak ada pengeluaran pribadi\n`;
-            }
           }
         }).getReportData(month);
       }
