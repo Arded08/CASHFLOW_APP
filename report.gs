@@ -188,6 +188,7 @@ function getDashboardData(month) {
     var jumlahPribadi = 0;
     var totalMakan = 0;
     var totalNgopi = 0;
+    var dealerMap = {};
     
     data.forEach(function(row) {
       // 6. Hitung data berdasarkan bulan yang dipilih, format bulan YYYY-MM
@@ -210,6 +211,25 @@ function getDashboardData(month) {
         if (tipe === 'KANTOR') {
           totalKantor += nominal;
           jumlahKantor++;
+
+          // Dealer Map
+          var dealerCode = String(row[4] || '').trim();
+          var dealerName = String(row[5] || '').trim();
+          var dealerKey = dealerCode || dealerName || 'Tanpa Dealer';
+          var displayName = dealerName || dealerCode || 'Tanpa Dealer';
+
+          if (!dealerMap[dealerKey]) {
+            dealerMap[dealerKey] = {
+              dealer_code: dealerCode || '',
+              nama_dealer: displayName,
+              total: 0,
+              jumlah_trx: 0,
+              percent: 0
+            };
+          }
+
+          dealerMap[dealerKey].total += nominal;
+          dealerMap[dealerKey].jumlah_trx += 1;
 
           // Hitung Makan vs Ngopi
           var namaTempat = String(row[7] || '');
@@ -234,9 +254,26 @@ function getDashboardData(month) {
         }
       }
     });
+
+    var topDealerList = Object.keys(dealerMap).map(function(key) {
+      var item = dealerMap[key];
+      item.percent = totalKantor > 0 ? Math.round((item.total / totalKantor) * 100) : 0;
+      return item;
+    }).sort(function(a, b) {
+      return b.total - a.total;
+    }).slice(0, 5);
     
     var sisaBudgetKantor = budgetKantor - totalKantor;
     var totalSemua = totalKantor + totalPribadi;
+    
+    var percentBudgetUsed = budgetKantor > 0 ? Math.round((totalKantor / budgetKantor) * 100) : 0;
+    var budgetStatus = 'AMAN';
+
+    if (percentBudgetUsed >= 100) {
+      budgetStatus = 'OVER BUDGET';
+    } else if (percentBudgetUsed >= 70) {
+      budgetStatus = 'WASPADA';
+    }
     
     var result = {
       budgetKantor: budgetKantor,
@@ -252,7 +289,10 @@ function getDashboardData(month) {
       jumlahPribadi: jumlahPribadi,
       jumlahTrxPribadi: jumlahPribadi,
       totalMakan: totalMakan,
-      totalNgopi: totalNgopi
+      totalNgopi: totalNgopi,
+      topDealerList: topDealerList,
+      percentBudgetUsed: percentBudgetUsed,
+      budgetStatus: budgetStatus
     };
     
     return successResponse(result);

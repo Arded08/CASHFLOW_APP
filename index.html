@@ -360,6 +360,63 @@
       border: 1px solid rgba(255,255,255,0.075) !important;
     }
 
+    .budget-health-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .budget-health-box > div {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .budget-health-box small {
+      display: block;
+      color: rgba(255,255,255,0.52);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .budget-health-box strong {
+      display: block;
+      color: #f8fafc;
+      font-size: 22px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .budget-status {
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 14px !important;
+      letter-spacing: 0.3px;
+    }
+
+    .budget-status-aman {
+      color: #86efac !important;
+      background: rgba(34,197,94,0.14);
+      border: 1px solid rgba(34,197,94,0.22);
+    }
+
+    .budget-status-warning {
+      color: #fde68a !important;
+      background: rgba(245,158,11,0.16);
+      border: 1px solid rgba(245,158,11,0.24);
+    }
+
+    .budget-status-over {
+      color: #fecaca !important;
+      background: rgba(239,68,68,0.16);
+      border: 1px solid rgba(239,68,68,0.24);
+    }
+
     .dealer-bar-info {
       display: block !important;
       margin-bottom: 12px !important;
@@ -812,6 +869,16 @@
                             <div id="sisa_budget">0</div>
                         </div>
                     </div>
+                    <div class="budget-health-box">
+                      <div>
+                        <small>Budget Terpakai</small>
+                        <strong id="budget_percent">0%</strong>
+                      </div>
+                      <div>
+                        <small>Status</small>
+                        <strong id="budget_status" class="budget-status budget-status-aman">AMAN</strong>
+                      </div>
+                    </div>
                 </div>
 
                 <div class="dashboard-mini-grid">
@@ -1017,6 +1084,34 @@
             document.getElementById('sisa_budget').innerText = formatRupiah(d.sisaBudgetKantor);
             document.getElementById('total_pribadi').innerText = formatRupiah(d.totalPengeluaranPribadi || d.totalPribadi);
             document.getElementById('total_semua').innerText = formatRupiah(d.totalSemuaPengeluaran || d.totalSemua);
+            
+            var percentBudgetUsed = Number(d.percentBudgetUsed || 0);
+            var budgetStatus = d.budgetStatus || 'AMAN';
+
+            var budgetPercentEl = document.getElementById('budget_percent');
+            var budgetStatusEl = document.getElementById('budget_status');
+            var progressBar = document.getElementById('progress_bar');
+
+            if (budgetPercentEl) {
+              budgetPercentEl.innerText = percentBudgetUsed + '%';
+            }
+
+            if (progressBar) {
+              progressBar.style.width = Math.min(percentBudgetUsed, 100) + '%';
+            }
+
+            if (budgetStatusEl) {
+              budgetStatusEl.innerText = budgetStatus;
+              budgetStatusEl.className = 'budget-status';
+
+              if (budgetStatus === 'OVER BUDGET') {
+                budgetStatusEl.classList.add('budget-status-over');
+              } else if (budgetStatus === 'WASPADA') {
+                budgetStatusEl.classList.add('budget-status-warning');
+              } else {
+                budgetStatusEl.classList.add('budget-status-aman');
+              }
+            }
             
             updateFoodCoffeeWidget(d.totalMakan || 0, d.totalNgopi || 0);
             updateDealerDashboard(d.topDealerList || []);
