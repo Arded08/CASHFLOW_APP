@@ -78,78 +78,163 @@ function updateTransactionStatus(trxId, newStatus) {
 }
 
 function getTransactions(filter) {
-  var sheet = getTransactionSheet_();
-  var data = sheet.getDataRange().getValues();
-  var headers = data.shift();
-  var headerMap = {};
-  headers.forEach(function(header, index) {
-    headerMap[String(header).trim()] = index;
-  });
+  try {
+    filter = filter || {};
 
-  function getCell(row, key) {
-    var idx = headerMap[key];
-    if (idx === undefined || idx === null) return '';
-    return row[idx];
-  }
-  
-  var result = data.map(function(row) {
-    var id = getCell(row, 'TRX_ID');
-    if (!id) return null;
+    function toSafeNumber(value) {
+      var n = Number(value);
+      if (!isFinite(n) || isNaN(n)) return 0;
+      return n;
+    }
+
+    function toSafeText(value) {
+      if (value === null || value === undefined) return '';
+      if (value instanceof Date) {
+        return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+      }
+      return String(value);
+    }
+
+    function toDateString(value) {
+      if (value instanceof Date) {
+        return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      }
+      if (!value) return '';
+      var str = String(value);
+      if (str.indexOf('T') !== -1) return str.split('T')[0];
+      return str;
+    }
+
+    function toMonthString(value) {
+      if (value instanceof Date) {
+        return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM');
+      }
+      if (!value) return '';
+      return String(value).trim();
+    }
+
+    var sheet = getTransactionSheet_();
+    var data = sheet.getDataRange().getValues();
+    var headers = data.shift();
+    var headerMap = {};
+    headers.forEach(function(header, index) {
+      headerMap[String(header).trim()] = index;
+    });
+
+    function getCell(row, key) {
+      var idx = headerMap[key];
+      if (idx === undefined || idx === null) return '';
+      return row[idx];
+    }
     
-    var tgl = getCell(row, 'TANGGAL');
-    var tglStr = '';
-    if (tgl instanceof Date) {
-      tglStr = Utilities.formatDate(tgl, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    } else if (tgl) {
-      tglStr = tgl.toString();
-      if (tglStr.indexOf('T') !== -1) {
-        tglStr = tglStr.split('T')[0];
+    var result = data.map(function(row) {
+      var id = toSafeText(getCell(row, 'TRX_ID'));
+      var status = toSafeText(getCell(row, 'STATUS')).toUpperCase();
+      var tipe = toSafeText(getCell(row, 'TIPE')).toUpperCase();
+      var tanggal = toSafeText(getCell(row, 'TANGGAL'));
+      var bulan = toSafeText(getCell(row, 'BULAN'));
+
+      if (!id) return null;
+      if (status === 'DELETED') return null;
+      if (tipe !== 'KANTOR' && tipe !== 'PRIBADI') return null;
+      if (!bulan && !tanggal) return null;
+
+      return {
+        id: toSafeText(id),
+        tanggal: toDateString(getCell(row, 'TANGGAL')),
+        bulan: toMonthString(getCell(row, 'BULAN')),
+        tipe: toSafeText(tipe),
+        dealer_code: toSafeText(getCell(row, 'DEALER_CODE')),
+        nama_dealer: toSafeText(getCell(row, 'NAMA_DEALER')),
+        claim_code: toSafeText(getCell(row, 'CLAIM_CODE')),
+        nama_tempat: toSafeText(getCell(row, 'NAMA_TEMPAT')),
+        deskripsi: toSafeText(getCell(row, 'DESKRIPSI')),
+        keterangan: toSafeText(getCell(row, 'KETERANGAN')),
+        nominal: toSafeNumber(getCell(row, 'NOMINAL')),
+        foto_url: toSafeText(getCell(row, 'FOTO_KWITANSI_URL')),
+        foto_id: toSafeText(getCell(row, 'FOTO_FILE_ID')),
+        status: toSafeText(status),
+        created_at: toSafeText(getCell(row, 'CREATED_AT')),
+        updated_at: toSafeText(getCell(row, 'UPDATED_AT'))
+      };
+    }).filter(function(trx) {
+      if (!trx) return false;
+      
+      // Patch: Fallback URL if foto_url is empty but foto_id exists
+      if (!trx.foto_url && trx.foto_id) {
+        trx.foto_url = 'https://drive.google.com/file/d/' + trx.foto_id + '/view';
+      }
+
+      var filterBulan = String(filter.bulan || '').trim();
+      var filterTipe = String(filter.tipe || '').trim();
+
+      var matchBulan = (!filterBulan || trx.bulan === filterBulan);
+      var matchTipe = (!filterTipe || filterTipe === 'SEMUA' || trx.tipe.toUpperCase() === filterTipe.toUpperCase());
+      return matchBulan && matchTipe;
+    }).sort(function(a, b) {
+      var dateA = a.created_at ? new Date(a.created_at) : (a.tanggal ? new Date(a.tanggal) : new Date(0));
+      var dateB = b.created_at ? new Date(b.created_at) : (b.tanggal ? new Date(b.tanggal) : new Date(0));
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    return successResponse(result);
+  } catch (err) {
+    return errorResponse('getTransactions error: ' + (err.message || String(err)));
+  }
+}
+
+function getTransactionsJson(filter) {
+  try {
+    var res = getTransactions(filter || {});
+    return JSON.stringify(res);
+  } catch (err) {
+    return JSON.stringify({
+      ok: false,
+      message: 'getTransactionsJson error: ' + (err.message || String(err))
+    });
+  }
+}
+
+function deleteTransaction(trxId) {
+  try {
+    if (!trxId) {
+      return { ok: false, message: 'TRX_ID wajib diisi' };
+    }
+
+    var config = getConfig_();
+    var ss = SpreadsheetApp.openById(config.SPREADSHEET_ID);
+    var sheet = ss.getSheetByName(config.SHEET_TRANSAKSI);
+    if (!sheet) {
+      return { ok: false, message: 'Sheet TRANSAKSI tidak ditemukan' };
+    }
+
+    var values = sheet.getDataRange().getValues();
+    if (values.length < 2) {
+      return { ok: false, message: 'Data transaksi kosong' };
+    }
+
+    var headers = values[0];
+    var map = {};
+    headers.forEach(function(h, i) {
+      map[String(h).trim()] = i;
+    });
+
+    if (map.TRX_ID === undefined || map.STATUS === undefined || map.UPDATED_AT === undefined) {
+      return { ok: false, message: 'Header TRX_ID/STATUS/UPDATED_AT tidak lengkap' };
+    }
+
+    for (var i = 1; i < values.length; i++) {
+      if (String(values[i][map.TRX_ID]) === String(trxId)) {
+        sheet.getRange(i + 1, map.STATUS + 1).setValue('DELETED');
+        sheet.getRange(i + 1, map.UPDATED_AT + 1).setValue(new Date());
+        return { ok: true, message: 'Transaksi berhasil dihapus' };
       }
     }
-    
-    var bln = getCell(row, 'BULAN');
-    if (bln instanceof Date) {
-        bln = Utilities.formatDate(bln, Session.getScriptTimeZone(), 'yyyy-MM');
-    } else if (bln) {
-        bln = bln.toString().trim();
-    }
 
-    return {
-      id: id,
-      tanggal: tglStr,
-      bulan: bln,
-      tipe: getCell(row, 'TIPE'),
-      dealer_code: getCell(row, 'DEALER_CODE'),
-      nama_dealer: getCell(row, 'NAMA_DEALER'),
-      claim_code: getCell(row, 'CLAIM_CODE'),
-      nama_tempat: getCell(row, 'NAMA_TEMPAT'),
-      deskripsi: getCell(row, 'DESKRIPSI'),
-      keterangan: getCell(row, 'KETERANGAN'),
-      nominal: getCell(row, 'NOMINAL'),
-      foto_url: getCell(row, 'FOTO_KWITANSI_URL'),
-      foto_id: getCell(row, 'FOTO_FILE_ID'),
-      status: getCell(row, 'STATUS'),
-      created_at: getCell(row, 'CREATED_AT'),
-      updated_at: getCell(row, 'UPDATED_AT')
-    };
-  }).filter(function(trx) {
-    if (!trx) return false;
-    
-    // Patch: Fallback URL if foto_url is empty but foto_id exists
-    if (!trx.foto_url && trx.foto_id) {
-      trx.foto_url = 'https://drive.google.com/file/d/' + trx.foto_id + '/view';
-    }
-
-    var matchBulan = (!filter.bulan || trx.bulan === filter.bulan);
-    var matchTipe = (!filter.tipe || filter.tipe === 'SEMUA' || trx.tipe === filter.tipe);
-    return matchBulan && matchTipe;
-  }).sort(function(a, b) {
-    var dateA = new Date(a.created_at || a.tanggal || 0);
-    var dateB = new Date(b.created_at || b.tanggal || 0);
-    return dateB.getTime() - dateA.getTime();
-  });
-  
-  return successResponse(result);
+    return { ok: false, message: 'Transaksi tidak ditemukan' };
+  } catch (err) {
+    return { ok: false, message: err.message || String(err) };
+  }
 }
 
 function saveOfficeExpense(payload, fileData) {

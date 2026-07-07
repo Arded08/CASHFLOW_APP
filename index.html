@@ -7,6 +7,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <style>
+      .history-action-btn {
+        min-height: 34px !important;
+        height: 34px !important;
+        padding: 6px 10px !important;
+        border-radius: 10px !important;
+        font-size: 12px !important;
+        margin: 0 4px 4px 0 !important;
+        width: auto !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .history-action-btn.danger {
+        background: rgba(239,68,68,0.16) !important;
+        color: #fecaca !important;
+        border: 1px solid rgba(239,68,68,0.28) !important;
+      }
+
       * { box-sizing: border-box; }
       html, body {
         width: 100%;
@@ -1037,6 +1056,7 @@
         const modal = document.getElementById('appModal');
         modal.classList.remove('show');
         if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
+        resetModalActions();
       }
       function showLoadingModal(msg) { showAppModal('loading', 'Mohon Tunggu', msg || 'Memproses data...'); }
       function showSuccessModal(msg, onOk) { showAppModal('success', 'Berhasil', msg, { onOk: onOk, autoCloseMs: 1200 }); }
@@ -1388,30 +1408,169 @@ function submitOfficeExpense() {
       </div>
       <div class="table-scroll">
         <table id="historyTable">
-          <thead><tr><th>Tanggal</th><th>Tipe</th><th>Dealer</th><th>Deskripsi</th><th>Nominal</th></tr></thead>
+          <thead><tr><th>Tanggal</th><th>Tipe</th><th>Dealer</th><th>Deskripsi</th><th>Nominal</th><th>Aksi</th></tr></thead>
           <tbody id="historyBody"></tbody>
         </table>
       </div>
       <button class="btn btn-secondary" style="margin-top:10px;" onclick="hideHistory()">Tutup</button>
     </div>
     <script>
+      var pendingDeleteTrxId = null;
+
+      function confirmDeleteTransaction(trxId) {
+        if (!trxId) {
+          showErrorModal('TRX_ID tidak valid');
+          return;
+        }
+        pendingDeleteTrxId = trxId;
+        showConfirmModal(
+          'Hapus Transaksi?',
+          'Transaksi akan disembunyikan dari riwayat. Data tidak dihapus permanen.',
+          function() {
+            executeDeleteTransaction();
+          }
+        );
+      }
+
+      function executeDeleteTransaction() {
+        if (!pendingDeleteTrxId) {
+          showErrorModal('TRX_ID tidak valid');
+          return;
+        }
+
+        showLoadingModal('Menghapus transaksi...');
+
+        google.script.run
+          .withFailureHandler(function(err) {
+            hideAppModal();
+            showErrorModal('Gagal hapus transaksi: ' + err);
+          })
+          .withSuccessHandler(function(res) {
+            hideAppModal();
+            if (res && res.ok) {
+              showSuccessModal('Transaksi berhasil dihapus');
+              pendingDeleteTrxId = null;
+              loadHistory();
+              loadDashboard();
+            } else {
+              showErrorModal('Gagal hapus transaksi: ' + ((res && res.message) || 'Error'));
+            }
+          })
+          .deleteTransaction(pendingDeleteTrxId);
+      }
+
+      function showConfirmModal(title, message, onConfirm) {
+        var modal = document.getElementById('appModal');
+        var icon = document.getElementById('appModalIcon');
+        var titleEl = document.getElementById('appModalTitle');
+        var messageEl = document.getElementById('appModalMessage');
+        var actions = document.getElementById('appModalActions');
+
+        if (!modal || !titleEl || !messageEl || !actions) {
+          if (confirm(message || title)) {
+            if (typeof onConfirm === 'function') onConfirm();
+          }
+          return;
+        }
+
+        if (icon) icon.textContent = '⚠️';
+        titleEl.textContent = title || 'Konfirmasi';
+        messageEl.textContent = message || 'Lanjutkan aksi ini?';
+
+        actions.innerHTML = ''
+          + '<button class="btn btn-secondary" onclick="hideAppModal()">Batal</button>'
+          + '<button class="btn" id="confirmModalYesBtn">Ya, Hapus</button>';
+
+        modal.classList.add('show');
+
+        var yesBtn = document.getElementById('confirmModalYesBtn');
+        if (yesBtn) {
+          yesBtn.onclick = function() {
+            hideAppModal();
+            if (typeof onConfirm === 'function') onConfirm();
+          };
+        }
+      }
+
+      function resetModalActions() {
+        var actions = document.getElementById('appModalActions');
+        if (actions) {
+          actions.innerHTML = '<button class="btn" id="appModalOkButton" onclick="hideAppModal()">OK</button>';
+        }
+      }
+
       function showHistory() { document.getElementById('historyPage').style.display = 'block'; loadHistory(); }
       function hideHistory() { document.getElementById('historyPage').style.display = 'none'; }
       function loadHistory() {
-        var filter = { bulan: document.getElementById('hist_filter_bulan').value, tipe: document.getElementById('hist_filter_tipe').value };
-        google.script.run.withSuccessHandler(function(res) {
-          var tbody = document.getElementById('historyBody');
-          tbody.innerHTML = '';
-          res.data.forEach(function(trx) {
-            var row = tbody.insertRow();
-            row.insertCell(0).innerText = trx.tanggal;
-            row.insertCell(1).innerText = trx.tipe;
-            row.insertCell(2).innerText = trx.nama_dealer || '-';
-            row.insertCell(3).innerText = trx.deskripsi;
-            row.insertCell(4).innerText = formatRupiah(trx.nominal);
-          });
-        }).getTransactions(filter);
+  var filter = {
+    bulan: document.getElementById('hist_filter_bulan').value,
+    tipe: document.getElementById('hist_filter_tipe').value
+  };
+
+  var tbody = document.getElementById('historyBody');
+  if (!tbody) {
+    showErrorModal('Tabel riwayat tidak ditemukan');
+    return;
+  }
+
+  tbody.innerHTML = '<tr><td colspan="6">Memuat riwayat...</td></tr>';
+
+  google.script.run
+    .withFailureHandler(function(err) {
+      tbody.innerHTML = '<tr><td colspan="6">Gagal memuat riwayat</td></tr>';
+      showErrorModal('Gagal memuat riwayat: ' + err);
+    })
+    .withSuccessHandler(function(res) {
+      var parsed = null;
+
+      try {
+        parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6">Gagal parse response riwayat</td></tr>';
+        showErrorModal('Gagal parse response riwayat: ' + e.message);
+        return;
       }
+
+      if (!parsed || !parsed.ok) {
+        var raw = '';
+        try {
+          raw = JSON.stringify(parsed);
+        } catch (e) {
+          raw = String(parsed);
+        }
+
+        var msg = (parsed && parsed.message)
+          ? parsed.message
+          : ('Response getTransactions tidak valid');
+
+        tbody.innerHTML = '<tr><td colspan="6">Gagal memuat riwayat: ' + msg + '</td></tr>';
+        showErrorModal('Gagal memuat riwayat: ' + msg);
+        return;
+      }
+
+      var data = Array.isArray(parsed.data) ? parsed.data : [];
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">Belum ada transaksi untuk filter ini</td></tr>';
+        return;
+      }
+
+      data.forEach(function(trx) {
+        var row = tbody.insertRow();
+
+        row.insertCell(0).innerText = trx.tanggal || '-';
+        row.insertCell(1).innerText = trx.tipe || '-';
+        row.insertCell(2).innerText = trx.nama_dealer || '-';
+        row.insertCell(3).innerText = trx.deskripsi || trx.keterangan || '-';
+        row.insertCell(4).innerText = formatRupiah(trx.nominal || 0);
+
+        var actionCell = row.insertCell(5);
+        actionCell.innerHTML =
+          '<button class="history-action-btn danger" onclick="confirmDeleteTransaction(\'' + trx.id + '\')">Hapus</button>';
+      });
+    })
+    .getTransactionsJson(filter);
+}
     </script>
   </body>
 </html>
