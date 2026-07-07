@@ -364,3 +364,129 @@ function saveOfficeExpense(payload, fileData) {
   
   return successResponse({ trxId: trxId });
 }
+
+function normalizeAuditMonth(value, tanggalValue, trxId) {
+  // Helper to try normalizing a date-like value
+  function tryNormalize(val) {
+    if (val instanceof Date) {
+      return Utilities.formatDate(val, Session.getScriptTimeZone(), 'yyyy-MM');
+    }
+    if (val === null || val === undefined) return '';
+    var str = String(val).trim();
+
+    if (/^\d{4}-\d{2}$/.test(str)) return str;
+
+    if (str.indexOf('T') !== -1) {
+      var datePart = str.split('T')[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        return datePart.slice(0, 7);
+      }
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      return str.slice(0, 7);
+    }
+    return '';
+  }
+
+  // A. Coba dari value kolom BULAN.
+  var resBulan = tryNormalize(value);
+  if (/^\d{4}-\d{2}$/.test(resBulan)) {
+    return resBulan;
+  }
+
+  // B. Kalau gagal, coba dari TANGGAL.
+  var resTanggal = tryNormalize(tanggalValue);
+  if (/^\d{4}-\d{2}$/.test(resTanggal)) {
+    return resTanggal;
+  }
+
+  // C. Kalau gagal, coba dari TRX_ID.
+  var id = String(trxId || '').trim();
+  var match = id.match(/^[PO]-(\d{4})(\d{2})/);
+  if (match) {
+    return match[1] + '-' + match[2];
+  }
+
+  // Fallback terakhir: kembalikan string value asli yang sudah di-trim
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function auditBrokenTransactions() {
+  var sheet = getTransactionSheet_();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var map = {};
+  headers.forEach(function(h, i) { map[String(h).trim()] = i; });
+
+  function getCell(row, key) {
+    var idx = map[key];
+    if (idx === undefined || idx === null) return '';
+    return row[idx];
+  }
+
+  var result = {
+    ok: true,
+    summary: { totalRows: 0, validRows: 0, brokenRows: 0, warningRows: 0 },
+    broken: [],
+    warnings: []
+  };
+
+  var validStatuses = ['DRAFT', 'READY', 'SAVED', 'SUBMITTED', 'APPROVED', 'REJECTED', 'DELETED'];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    result.summary.totalRows++;
+    var rowNumber = i + 1;
+    var trxId = String(row[map.TRX_ID] || '');
+    var tipe = String(row[map.TIPE] || '').toUpperCase();
+    var nominal = Number(row[map.NOMINAL] || 0);
+    var status = String(row[map.STATUS] || '').toUpperCase();
+    
+    var bulanRaw = getCell(row, 'BULAN');
+    var tanggalRaw = getCell(row, 'TANGGAL');
+    var bulan = normalizeAuditMonth(bulanRaw, tanggalRaw, trxId);
+    
+    var broken = [];
+    var warnings = [];
+
+    if (!trxId) broken.push('TRX_ID wajib ada.');
+    if (tipe !== 'KANTOR' && tipe !== 'PRIBADI') broken.push('TIPE harus KANTOR atau PRIBADI.');
+    if (!/^\d{4}-\d{2}$/.test(bulan)) warnings.push('BULAN tidak standar yyyy-MM.');
+    if (!isFinite(nominal) || nominal < 0) broken.push('NOMINAL tidak valid.');
+    if (!status) {
+      warnings.push('STATUS kosong.');
+    } else if (validStatuses.indexOf(status) === -1) {
+      broken.push('STATUS tidak valid: ' + status);
+    }
+
+    if (tipe === 'KANTOR') {
+      if (map.DEALER_CODE !== undefined && !row[map.DEALER_CODE]) warnings.push('DEALER_CODE kosong.');
+      if (map.NAMA_DEALER !== undefined && !row[map.NAMA_DEALER]) warnings.push('NAMA_DEALER kosong.');
+      if (map.CLAIM_CODE !== undefined && !row[map.CLAIM_CODE]) warnings.push('CLAIM_CODE kosong.');
+    } else if (tipe === 'PRIBADI') {
+      if (map.DESKRIPSI !== undefined && !row[map.DESKRIPSI]) warnings.push('DESKRIPSI kosong.');
+    }
+
+    if (broken.length > 0) {
+      result.summary.brokenRows++;
+      result.broken.push({ rowNumber: rowNumber, trxId: trxId, tipe: tipe, masalah: broken });
+    } else if (warnings.length > 0) {
+      result.summary.warningRows++;
+      result.warnings.push({ rowNumber: rowNumber, trxId: trxId, tipe: tipe, warning: warnings });
+    } else {
+      result.summary.validRows++;
+    }
+  }
+
+  Logger.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+function testAuditBrokenTransactions() {
+  var res = auditBrokenTransactions();
+  Logger.log(JSON.stringify(res, null, 2));
+  return res;
+}
+
