@@ -812,7 +812,7 @@
             document.getElementById('total_pribadi').innerText = formatRupiah(d.totalPengeluaranPribadi || d.totalPribadi);
             document.getElementById('total_semua').innerText = formatRupiah(d.totalSemuaPengeluaran || d.totalSemua);
             
-            updateFoodCoffeeWidget(0, 0);
+            updateFoodCoffeeWidget(d.totalMakan || 0, d.totalNgopi || 0);
           } else showErrorModal('Gagal memuat dashboard: ' + (res.message || 'Error'));
         }).getDashboardData(month);
       }

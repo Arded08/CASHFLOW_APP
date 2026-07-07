@@ -186,6 +186,8 @@ function getDashboardData(month) {
     var totalPribadi = 0;
     var jumlahKantor = 0;
     var jumlahPribadi = 0;
+    var totalMakan = 0;
+    var totalNgopi = 0;
     
     data.forEach(function(row) {
       // 6. Hitung data berdasarkan bulan yang dipilih, format bulan YYYY-MM
@@ -199,7 +201,7 @@ function getDashboardData(month) {
       if (rowBulan === month) {
         var tipe = row[3];
         // 9. Pastikan kolom NOMINAL dibaca sebagai angka
-        var nominal = parseFloat(row[5]);
+        var nominal = parseFloat(row[10]);
         if (isNaN(nominal)) {
           nominal = 0;
         }
@@ -208,6 +210,24 @@ function getDashboardData(month) {
         if (tipe === 'KANTOR') {
           totalKantor += nominal;
           jumlahKantor++;
+
+          // Hitung Makan vs Ngopi
+          var namaTempat = String(row[7] || '');
+          var deskripsi = String(row[8] || '');
+          var keterangan = String(row[9] || '');
+          var text = (namaTempat + ' ' + deskripsi + ' ' + keterangan).toLowerCase();
+
+          var makanKeywords = ['makan', 'nasi', 'ayam', 'bakso', 'soto', 'rumah makan', 'resto', 'restaurant', 'lunch', 'dinner', 'food'];
+          var ngopiKeywords = ['kopi', 'coffee', 'cafe', 'kafe', 'ngopi'];
+
+          var isNgopi = ngopiKeywords.some(function(k) { return text.indexOf(k) !== -1; });
+          var isMakan = makanKeywords.some(function(k) { return text.indexOf(k) !== -1; });
+
+          if (isNgopi) {
+            totalNgopi += nominal;
+          } else if (isMakan) {
+            totalMakan += nominal;
+          }
         } else if (tipe === 'PRIBADI') {
           totalPribadi += nominal;
           jumlahPribadi++;
@@ -230,7 +250,9 @@ function getDashboardData(month) {
       jumlahKantor: jumlahKantor,
       jumlahTrxKantor: jumlahKantor,
       jumlahPribadi: jumlahPribadi,
-      jumlahTrxPribadi: jumlahPribadi
+      jumlahTrxPribadi: jumlahPribadi,
+      totalMakan: totalMakan,
+      totalNgopi: totalNgopi
     };
     
     return successResponse(result);
